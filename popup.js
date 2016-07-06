@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function click() {
-  chrome.tabs.executeScript(null, {file: 'content_script.js'});
+  chrome.tabs.executeScript(null, {file: 'content_script.js', allFrames: true});
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
