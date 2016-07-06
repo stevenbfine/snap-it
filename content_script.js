@@ -1,5 +1,14 @@
 var FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
+function serializeDocument(html, holes, document, depth) {
+	html.push('<!DOCTYPE html>\n');
+	var node = document.firstChild;
+	while (node.nodeType == Node.DOCUMENT_TYPE_NODE) {
+		node = node.nextSibling; // could this be an infinite loop?
+	}
+	serializeTree(html, holes, node, depth);
+}
+
 function serializeTree(html, holes, element, depth) {
   if (!element.tagName && element.nodeType != Node.TEXT_NODE) {
     // ignore elements that don't have tags and are not text
@@ -45,7 +54,7 @@ function serializeTree(html, holes, element, depth) {
 
 function fillHoles(html, holes) {
   if (Object.keys(holes).length == 0) {
-    var output = "<!DOCTYPE html>\n" + html.join("");
+    var output = html.join('');
     var file = new Blob([output], {type: 'text/html'});
     var url = URL.createObjectURL(file)
     // var extensionId = "nlhglfcihneopknjknodakgjfiapnnmn";
@@ -74,5 +83,5 @@ function fillHoles(html, holes) {
 
 var holes = {};
 var html = [];
-serializeTree(html, holes, document.firstChild.nextSibling, 0);
+serializeDocument(html, holes, document, 0);
 fillHoles(html, holes);
