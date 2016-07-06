@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-	document.getElementById('button').addEventListener('click', click);
+  document.getElementById('button').addEventListener('click', click);
 });
 
 function click() {
@@ -7,8 +7,8 @@ function click() {
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  		var a = document.getElementById('download');
-  		a.href = request;
-  		a.download = "webpage.html";
-  		a.innerHTML = "Download";
+      var a = document.getElementById('download');
+      a.href = request;
+      a.download = "webpage.html";
+      a.innerHTML = "Download";
 });
