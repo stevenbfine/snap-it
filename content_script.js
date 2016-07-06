@@ -1,37 +1,33 @@
-var filteredTags = ["script", "noscript", "style"];//, "link"];
+var FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
 function serializeTree(html, holes, element, depth) {
-  if (!element.tagName && element.nodeType != 3) {
+  if (!element.tagName && element.nodeType != Node.TEXT_NODE) {
     // ignore elements that don't have tags and are not text
-  }
-  else if (element.tagName && filteredTags.indexOf(element.tagName.toLowerCase()) != -1) {
+  } else if (element.tagName && FILTERED_TAGS.has(element.tagName.toLowerCase())) {
     // filter out elements that are in filteredTags
-  }
-  else if (element.nodeType == 3) {
+  } else if (element.nodeType == Node.TEXT_NODE) {
     html.push(element.textContent);
-  }
-  else {
-    html.push(new Array(depth+1).join("  "));
-    html.push("<" + element.tagName + " ");
+  } else {
+    html.push(new Array(depth+1).join('  '));
+    html.push(`<${element.tagName.toLowerCase()} `);
 
     var style = element.ownerDocument.defaultView.getComputedStyle(element, null).cssText;
     style = style.replace(/"/g, "'");
-    html.push('style="' + style + '" ');
+    hhtml.push(`style="${style}" `);
 
     var attributes = element.attributes;
     if (attributes) {
       for (var i = 0; i < attributes.length; i++) {
         var attribute = attributes[i];
-        if (attribute.name.toLowerCase() == "src") {
-          html.push(attribute.name + "=");
+        if (attribute.name.toLowerCase() == 'src') {
+          html.push(`${attribute.name}="`);
           holes[html.length] = attribute.value; // mark location to insert url later
-          html.push(""); // create filler entry
-        }
-        else if (attribute.name.toLowerCase() != "style") {
-          html.push(attribute.name + '="' + attribute.value + '" ');
+          html.push(''); // create filler entry
+        } else if (attribute.name.toLowerCase() != "style") {
+          html.push(`${attribute.name}="${attribute.value}" `);
         }
       }
-      html.push(">\n");
+      html.push('>\n');
     }
     
     var children = element.childNodes;
@@ -42,8 +38,8 @@ function serializeTree(html, holes, element, depth) {
       }
     }
 
-    html.push(new Array(depth+1).join("  "));
-    html.push("</" + element.tagName + ">\n");
+    html.push(new Array(depth+1).join('  '));
+    html.push(`</${element.tagName.toLowerCase()}>\n`);
   }
 }
 
