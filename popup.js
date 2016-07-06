@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function click() {
-  chrome.tabs.executeScript(null, {file: "content_script.js"});
+  chrome.tabs.executeScript(null, {file: 'content_script.js'});
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       var a = document.getElementById('download');
       a.href = request;
-      a.download = "webpage.html";
-      a.innerHTML = "Download";
+      a.download = 'webpage.html';
+      a.innerHTML = 'Download';
 });
