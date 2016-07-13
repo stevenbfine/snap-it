@@ -195,7 +195,7 @@ function fillSrcHoles(htmlSerializer, i, callback) {
     var src = htmlSerializer.srcHoles[index];
     fetch(src).then(function(response) {
       return response.blob();
-      }).then(function(blob) {
+    }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
         htmlSerializer.html[index] = e.target.result;
