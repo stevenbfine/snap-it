@@ -103,8 +103,8 @@ class HTMLSerializer {
         if (tagName.toLowerCase() == 'iframe') {
           this.html.push('srcdoc=');
           var path = this.iframePath(window);
-          var num = this.iframeNum(element.contentWindow);
-          this.frameHoles[this.html.length] = path + '.' + num;
+          var index = this.iframeIndex(element.contentWindow);
+          this.frameHoles[this.html.length] = path + '.' + index;
           this.html.push(''); // entry where the iframe contents will go.
           this.html.push(' ');
         }
@@ -142,12 +142,12 @@ class HTMLSerializer {
   }
 
   /**
-   * Computes the index of the window in it's parent's array of frames.
+   * Computes the index of the window in its parent's array of frames.
    *
    * @param {Window} win The window to use in the calculation.
    * @return {number} the frames index.
    */
-  iframeNum(win) {
+  iframeIndex(win) {
     if (win.parent != win) {
       for (var i = 0; i < win.parent.frames.length; i++) {
         if (win.parent.frames[i] == win) {
@@ -167,10 +167,10 @@ class HTMLSerializer {
    * @return {string} The full path.
    */
   iframePath(win) {
-    if (this.iframeNum(win) < 0) {
+    if (this.iframeIndex(win) < 0) {
       return '0';
     } else {
-      return this.iframePath(win.parent) + '.' + this.iframeNum(win); 
+      return this.iframePath(win.parent) + '.' + this.iframeIndex(win); 
     }
   }
 }
