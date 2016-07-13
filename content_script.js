@@ -59,17 +59,17 @@ class HTMLSerializer {
    * Takes an html element, and populates this object's fields such that it can
    * eventually be converted into an html text file.
    *
-   * @param {Element} element The Element to serialize
+   * @param {Element} element The Element to serialize.
    * @param {number} depth The number of parents this element has in the current
-   *     frame
+   *     frame.
    * @private
    */ 
   processTree(element, depth) {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
-      // ignore elements that don't have tags and are not text
+      // ignore elements that don't have tags and are not text.
     } else if (tagName && this.FILTERED_TAGS.has(tagName.toLowerCase())) {
-      // filter out elements that are in filteredTags
+      // filter out elements that are in filteredTags.
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
     } else {
@@ -89,7 +89,7 @@ class HTMLSerializer {
               if (tagName.toLowerCase() != 'iframe') {
                 this.html.push(`${attribute.name}=`);
                 this.srcHoles[this.html.length] = attribute.value;
-                this.html.push(''); // entry where data url will go
+                this.html.push(''); // entry where data url will go.
                 this.html.push(' ');
               }
             case 'style':
@@ -105,7 +105,7 @@ class HTMLSerializer {
           var path = this.iframePath(window);
           var num = this.iframeNum(element.contentWindow);
           this.frameHoles[this.html.length] = path + '.' + num;
-          this.html.push(''); // entry where the iframe contents will go
+          this.html.push(''); // entry where the iframe contents will go.
           this.html.push(' ');
         }
       }
@@ -128,7 +128,7 @@ class HTMLSerializer {
    * Takes an html document, and populates this objects fields such that it can
    * eventually be converted into an html file.
    *
-   * @param {Document} doc The Document to serialize
+   * @param {Document} doc The Document to serialize.
    * @public
    */ 
   processDocument(doc) {
@@ -144,8 +144,8 @@ class HTMLSerializer {
   /**
    * Computes the index of the window in it's parent's array of frames.
    *
-   * @param {Window} win The window to use in the calculation
-   * @return {number} the frames index
+   * @param {Window} win The window to use in the calculation.
+   * @return {number} the frames index.
    */
   iframeNum(win) {
     if (win.parent != win) {
@@ -161,10 +161,10 @@ class HTMLSerializer {
 
   /**
    * Computes the full path of the frame in the root document. Nested layers
-   * are seperated by '.'
+   * are seperated by '.'.
    *
-   * @param {Window} win The window to use in the calculation
-   * @return {string} The full path
+   * @param {Window} win The window to use in the calculation.
+   * @return {string} The full path.
    */
   iframePath(win) {
     if (this.iframeNum(win) < 0) {
@@ -181,9 +181,9 @@ class HTMLSerializer {
  * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
  * creates data urls for the resources, and places them in |this.html|.
  *
- * @param {HTMLSerializer} htmlSerializer The HTMLSerializer
- * @param {number} i The index of |this.srcHoles| at which to start
- * @param {Function} callback The callback function
+ * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
+ * @param {number} i The index of |this.srcHoles| at which to start.
+ * @param {Function} callback The callback function.
  */
 function fillSrcHoles(htmlSerializer, i, callback) {
   if (i == Object.keys(htmlSerializer.srcHoles).length) {
@@ -208,9 +208,9 @@ function fillSrcHoles(htmlSerializer, i, callback) {
 }
 
 /**
- * Send the neccessary HTMLSerializer properties back to the extension
+ * Send the neccessary HTMLSerializer properties back to the extension.
  *
- * @param {HTMLSerializer} htmlSerializer The HTMLSerializer
+ * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  */
 function sendHTMLSerializerToExtension(htmlSerializer) {
   var result = {

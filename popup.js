@@ -26,7 +26,7 @@ function click() {
 
 /**
  * Takes all the responses from the injected content scripts and creates the
- * HTML file for download
+ * HTML file for download.
  * 
  * @param {Array<Object>} messages The response from all of the injected content
  *     scripts.
@@ -48,7 +48,7 @@ function completeProcess(messages) {
  * 
  * @param {Array<Object>} messages The response from all of the injected content
  *     scripts.
- * @return {string} The resulting HTML
+ * @return {string} The resulting HTML.
  */
 function outputHTMLString(messages) {
   var rootIndex = 0;
@@ -60,12 +60,12 @@ function outputHTMLString(messages) {
 }
 
 /**
- * Fills all of the gaps in messages[i].html
+ * Fills all of the gaps in |messages[i].html|.
  *
  * @param {Array<Object>} messages The response from all of the injected content
- *     scripts
- * @param {number} i The index of messages to use
- * @param {number} depth How many parent iframes messages[i] has
+ *     scripts.
+ * @param {number} i The index of messages to use.
+ * @param {number} depth How many parent iframes messages[i] has.
  */
 function fillRemainingHoles(messages, i, depth) {
   var html = messages[i].html;
@@ -98,10 +98,10 @@ function fillRemainingHoles(messages, i, depth) {
 
 /**
  * Calculate the correct quotes that should be used given how many parent
- * iframes a given frame has
+ * iframes a given frame has.
  *
- * @param {number} depth The number of parent iframes
- * @return {string} The correctly escaped quotation marks
+ * @param {number} depth The number of parent iframes.
+ * @return {string} The correctly escaped quotation marks.
  */
 function getQuotes(depth) {
   if (depth == 0) {
