@@ -23,13 +23,13 @@ class HTMLSerializer {
 
     /**
      * @public {Object<number, string>} The keys represent an index in
-     *     this.html.  The value is a url at which the resource that belongs at
-     *     that index can be retrieved.  The resource will eventually be
-     *     converted to a data url.  Because any given document being serialized
+     *     |this.html|. The value is a url at which the resource that belongs at
+     *     that index can be retrieved. The resource will eventually be
+     *     converted to a data url. Because any given document being serialized
      *     could be an iframe which is nested 1 or more levels into the root
      *     document, the exact quotes that will be used to surround the data url
      *     must be determined when the frames are being put together, so that
-     *     they can be properly escaped.  As a result, this.html has a filler
+     *     they can be properly escaped. As a result, |this.html| has a filler
      *     index both immediately before, and immediately after where the data
      *     url will be placed (3 filler indices in total).
      */
@@ -37,15 +37,15 @@ class HTMLSerializer {
 
     /**
      * @public {Object<number, string>} The keys represent an index in
-     *     this.html.  The value is a string that uniquely identifies an iframe,
+     *     |this.html|. The value is a string that uniquely identifies an iframe,
      *     the serialized contents of which should be placed at that index of
-     *     this.html.
+     *     |this.html|.
      */
     this.frameHoles = {};
 
     /**
-     * @public {Array<number>} Each number in this.styleIndices corresponds to
-     *     an index in this.html at which a serialized style attribute is
+     * @public {Array<number>} Each number in |this.styleIndices| corresponds to
+     *     an index in |this.html| at which a serialized style attribute is
      *     located. This is because there are styles that contain quotation
      *     marks. Because any given document being serialized could be an iframe
      *     which is nested 1 or more levels into the root document, the exact
@@ -161,7 +161,7 @@ class HTMLSerializer {
   }
 
   /**
-   * Computes the full path of the frame in the root document.  Nested layers
+   * Computes the full path of the frame in the root document. Nested layers
    * are seperated by '.'
    *
    * @param {Window} win The window to use in the calculation
@@ -175,15 +175,15 @@ class HTMLSerializer {
     }
   }
 }
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
- * creates data urls for the resources, and places them in this.html
+ * creates data urls for the resources, and places them in |this.html|.
  *
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer
- * @param {number} i The index of this.srcHoles at which to start
+ * @param {number} i The index of |this.srcHoles| at which to start
  * @param {Function} callback The callback function
  */
 function fillSrcHoles(htmlSerializer, i, callback) {
