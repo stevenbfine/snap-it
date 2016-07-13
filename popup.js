@@ -12,9 +12,10 @@ function click() {
     }
   });
 
+  // TODO(sfine): figure out why not all iframes are getting content scripts
+  //              injected.
   chrome.tabs.executeScript(null, {file: 'content_script.js', allFrames: true},
-      function(response) { // TODO: FIGURE OUT WHY NOT ALL IFRAMES ARE GETTING
-                           //       CONTENT SCRIPTS INJECTED
+      function(response) {
         results = response;
         if (messages.length == results.length) {
           completeProcess(messages);

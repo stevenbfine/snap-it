@@ -3,11 +3,9 @@
  * of strings and stores enough state to later asynchronously convert it into an
  * html text file.
  */
-class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
-                       //       GIVES Identifier 'HTMLSerializer' has already
-                       //       been declared ERROR AND IF I ENCAPSULATE THE
-                       //       CLASS IN {} THE TESTS WONT BE ABLE TO
-                       //       INSTANTIATE AN INSTANCE
+ // TODO(sfine): fix 'Identifier "HTMLSerializer" has already been declared'
+ //              error.
+class HTMLSerializer {
   constructor() {
 
     /**
@@ -99,9 +97,9 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
             this.html.push(`${attribute.name}="${attribute.value}" `);
           }
         }
-        if (tagName.toLowerCase() == 'iframe') { // TODO: IS IT POSSIBLE AN
-                                                 //       IFRAME CAN HAVE NO
-                                                 //       ATTRIBUTES?
+        // TODO(sfine): ensure this is working by making sure that an iframe
+        //              will always have attributes.
+        if (tagName.toLowerCase() == 'iframe') {
           this.html.push('srcdoc=');
           var path = this.iframePath(window);
           var num = this.iframeNum(element.contentWindow);
@@ -137,8 +135,9 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
     doc = doc || document;
     this.html.push('<!DOCTYPE html>\n');
     var node = doc.firstChild;
+    // TODO(sfine): verify that this will not cause an infinite loop.
     while (node.nodeType == Node.DOCUMENT_TYPE_NODE) {
-      node = node.nextSibling; // TODO: could this cause an infinite loop?
+      node = node.nextSibling;
     }
     this.serializeTree(node, 0);
   }
@@ -226,7 +225,7 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 }
 
 
-/////////// TODO: CHECK FOR TEST IN A BETTER WAY /////////////
+// TODO(sfine): check for testing in better way.
 if (typeof IS_TEST === typeof undefined || !IS_TEST) {
   var htmlSerializer = new HTMLSerializer();
   htmlSerializer.serializeDocument();
