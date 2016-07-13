@@ -86,8 +86,7 @@ function fillRemainingHoles(messages, i, depth) {
   for (var index in srcHoles) {
     if (srcHoles.hasOwnProperty(index)) {
       var srcIndex = srcHoles[index];
-      html[srcIndex-1] = quotes;
-      html[srcIndex+1] = quotes;
+      html[srcIndex] = quotes + html[srcIndex] + quotes;
     }
   }
   var styleIndices = messages[i].styleIndices;

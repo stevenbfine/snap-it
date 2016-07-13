@@ -88,10 +88,8 @@ class HTMLSerializer {
             case 'src':
               if (tagName.toLowerCase() != 'iframe') {
                 this.html.push(`${attribute.name}=`);
-                this.html.push(''); // entry where properly escaped quotes will go
                 this.srcHoles[this.html.length] = attribute.value;
                 this.html.push(''); // entry where data url will go
-                this.html.push(''); // entry where properly escaped quotes will go
                 this.html.push(' ');
               }
             case 'style':
