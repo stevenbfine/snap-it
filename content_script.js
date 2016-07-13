@@ -84,17 +84,20 @@ class HTMLSerializer {
       var attributes = element.attributes;
       if (attributes) {
         for (var i = 0, attribute; attribute = attributes[i]; i++) {
-          if (attribute.name.toLowerCase() == 'src') {
-            if (tagName.toLowerCase() != 'iframe') {
-              this.html.push(`${attribute.name}=`);
-              this.html.push(''); // entry where properly escaped quotes will go
-              this.srcHoles[this.html.length] = attribute.value;
-              this.html.push(''); // entry where data url will go
-              this.html.push(''); // entry where properly escaped quotes will go
-              this.html.push(' ');
-            }
-          } else if (attribute.name.toLowerCase() != 'style') {
-            this.html.push(`${attribute.name}="${attribute.value}" `);
+          switch (attribute.name.toLowerCase())  {
+            case 'src':
+              if (tagName.toLowerCase() != 'iframe') {
+                this.html.push(`${attribute.name}=`);
+                this.html.push(''); // entry where properly escaped quotes will go
+                this.srcHoles[this.html.length] = attribute.value;
+                this.html.push(''); // entry where data url will go
+                this.html.push(''); // entry where properly escaped quotes will go
+                this.html.push(' ');
+              }
+            case 'style':
+              break;
+            default:
+              this.html.push(`${attribute.name}="${attribute.value}" `);
           }
         }
         // TODO(sfine): ensure this is working by making sure that an iframe
