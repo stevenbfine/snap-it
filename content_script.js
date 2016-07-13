@@ -181,7 +181,8 @@ class HTMLSerializer {
 
 /**
  * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
- * creates data urls for the resources, and places them in |this.html|.
+ * creates data urls for the resources, and places them in |this.html|. Calls
+ * the callback when complete.
  *
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  * @param {number} index The index of |this.srcHoles| at which to start.
