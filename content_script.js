@@ -64,7 +64,7 @@ class HTMLSerializer {
    *     frame
    * @private
    */ 
-  serializeTree(element, depth) {
+  processTree(element, depth) {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
       // ignore elements that don't have tags and are not text
@@ -114,7 +114,7 @@ class HTMLSerializer {
       var children = element.childNodes;
       if (children) {
         for (var i = 0, child; child = children[i]; i++) {
-          this.serializeTree(child, depth+1);
+          this.processTree(child, depth+1);
         }
       }
 
@@ -139,7 +139,7 @@ class HTMLSerializer {
     while (node.nodeType == Node.DOCUMENT_TYPE_NODE) {
       node = node.nextSibling;
     }
-    this.serializeTree(node, 0);
+    this.processTree(node, 0);
   }
 
   /**
