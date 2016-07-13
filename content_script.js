@@ -1,70 +1,85 @@
 /**
- * HTML serializer that takes a document and synchronously stores it as an array of strings and stores enough state to later
- * asynchronously convert it into an html text file.
+ * HTML serializer that takes a document and synchronously stores it as an array
+ * of strings and stores enough state to later asynchronously convert it into an
+ * html text file.
  */
-class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED, GIVES Identifier 'HTMLSerializer' has already been declared ERROR
-                       //       AND IF I ENCAPSULATE THE CLASS IN {} THE TESTS WONT BE ABLE TO INSTANTIATE AN INSTANCE
+class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
+                       //       GIVES Identifier 'HTMLSerializer' has already
+                       //       been declared ERROR AND IF I ENCAPSULATE THE
+                       //       CLASS IN {} THE TESTS WONT BE ABLE TO
+                       //       INSTANTIATE AN INSTANCE
   constructor() {
 
     /**
-     * @private {Set<string>} Contains the lower case tag names that should be ignored while serializing a document.
+     * @private {Set<string>} Contains the lower case tag names that should be
+     *     ignored while serializing a document.
      * @const
      */
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
-     * @public {Array<string>} This array represents the serialized html that makes up an element or document. 
+     * @public {Array<string>} This array represents the serialized html that
+     *     makes up an element or document. 
      */
     this.html = [];
 
     /**
-     * @public {Object<number, string>} The keys represent an index in this.html.  The value
-     *    is a url at which the resource that belongs at that index can be retrieved.  The resource will eventually
-     *    be converted to a data url.  Because any given document being serialized could be an iframe which is
-     *    nested 1 or more levels into the root document, the exact quotes that will be used to surround the data url
-     *    must be determined when the frames are being put together, so that they can be properly escaped.  As a
-     *    result, this.html has a filler index both immediately before, and immediately after where the data url will
-     *    be placed (3 filler indices in total).
+     * @public {Object<number, string>} The keys represent an index in
+     *     this.html.  The value is a url at which the resource that belongs at
+     *     that index can be retrieved.  The resource will eventually be
+     *     converted to a data url.  Because any given document being serialized
+     *     could be an iframe which is nested 1 or more levels into the root
+     *     document, the exact quotes that will be used to surround the data url
+     *     must be determined when the frames are being put together, so that
+     *     they can be properly escaped.  As a result, this.html has a filler
+     *     index both immediately before, and immediately after where the data
+     *     url will be placed (3 filler indices in total).
      */
     this.srcHoles = {};
 
     /**
-     * @public {Object<number, string>} The keys represent an index in this.html.  The value
-     *    is a string that uniquely identifies an iframe, the serialized contents of which should be placed at that
-     *    index of this.html.
+     * @public {Object<number, string>} The keys represent an index in
+     *     this.html.  The value is a string that uniquely identifies an iframe,
+     *     the serialized contents of which should be placed at that index of
+     *     this.html.
      */
     this.frameHoles = {};
 
     /**
-     * @public {Array<number>} Each number in this.styleIndices corresponds to an index in this.html at which a
-     *    serialized style attribute is located. This is because there are styles that contain quotation marks.
-     *    Because any given document being serialized could be an iframe which is nested 1 or more levels into
-     *    the root document, the exact quotes that will be used must be determined when the frames are being put
-     *    together, so that they can be properly escaped.
+     * @public {Array<number>} Each number in this.styleIndices corresponds to
+     *     an index in this.html at which a serialized style attribute is
+     *     located. This is because there are styles that contain quotation
+     *     marks. Because any given document being serialized could be an iframe
+     *     which is nested 1 or more levels into the root document, the exact
+     *     quotes that will be used must be determined when the frames are being
+     *     put together, so that they can be properly escaped.
      */
     this.styleIndices = [];
   }
 
   /**
-   * Takes an html element, and populates this object's fields such that it can eventually be converted into an
-   * html text file.
+   * Takes an html element, and populates this object's fields such that it can
+   * eventually be converted into an html text file.
    *
    * @param {Element} element The Element to serialize
-   * @param {number} depth The number of parents this element has in the current frame
+   * @param {number} depth The number of parents this element has in the current
+   *     frame
    * @private
    */ 
   serializeTree(element, depth) {
-    if (!element.tagName && element.nodeType != Node.TEXT_NODE) {
+    var tagName = element.tagName;
+    if (!tagName && element.nodeType != Node.TEXT_NODE) {
       // ignore elements that don't have tags and are not text
-    } else if (element.tagName && this.FILTERED_TAGS.has(element.tagName.toLowerCase())) {
+    } else if (tagName && this.FILTERED_TAGS.has(tagName.toLowerCase())) {
       // filter out elements that are in filteredTags
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
     } else {
       this.html.push(new Array(depth+1).join('  '));
-      this.html.push(`<${element.tagName.toLowerCase()} `);
+      this.html.push(`<${tagName.toLowerCase()} `);
 
-      var style = element.ownerDocument.defaultView.getComputedStyle(element, null).cssText;
+      var win = element.ownerDocument.defaultView;
+      var style = win.getComputedStyle(element, null).cssText;
       this.styleIndices.push(this.html.length);
       this.html.push(`style="${style}" `);
 
@@ -72,10 +87,10 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
       if (attributes) {
         for (var i = 0, attribute; attribute = attributes[i]; i++) {
           if (attribute.name.toLowerCase() == 'src') {
-            if (element.tagName.toLowerCase() != 'iframe') {
+            if (tagName.toLowerCase() != 'iframe') {
               this.html.push(`${attribute.name}=`);
               this.html.push(''); // entry where properly escaped quotes will go
-              this.srcHoles[this.html.length] = attribute.value; // mark location to insert url later
+              this.srcHoles[this.html.length] = attribute.value;
               this.html.push(''); // entry where data url will go
               this.html.push(''); // entry where properly escaped quotes will go
               this.html.push(' ');
@@ -84,9 +99,13 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
             this.html.push(`${attribute.name}="${attribute.value}" `);
           }
         }
-        if (element.tagName.toLowerCase() == 'iframe') { // TODO: IS IT POSSIBLE AN IFRAME CAN HAVE NO ATTRIBUTES?
+        if (tagName.toLowerCase() == 'iframe') { // TODO: IS IT POSSIBLE AN
+                                                 //       IFRAME CAN HAVE NO
+                                                 //       ATTRIBUTES?
           this.html.push('srcdoc=');
-          this.frameHoles[this.html.length] = this.iframeFullPosition(window) + '.' + this.iframePosition(element.contentWindow);
+          var path = this.iframePath(window);
+          var num = this.iframeNum(element.contentWindow);
+          this.frameHoles[this.html.length] = path + '.' + num;
           this.html.push(''); // entry where the iframe contents will go
           this.html.push(' ');
         }
@@ -102,15 +121,16 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
       }
 
       this.html.push(new Array(depth+1).join('  '));
-      this.html.push(`</${element.tagName.toLowerCase()}>\n`);
+      this.html.push(`</${tagName.toLowerCase()}>\n`);
     }
   }
 
   /**
-   * Takes an html document, and populates this objects fields such that it can eventually be converted into an
-   * html file.
+   * Takes an html document, and populates this objects fields such that it can
+   * eventually be converted into an html file.
    *
-   * @param {Document} doc The Document to serialize. Defaults to the current document
+   * @param {Document} doc The Document to serialize. Defaults to the current
+   *     document
    * @public
    */ 
   serializeDocument(doc) {
@@ -129,7 +149,7 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
    * @param {Window} win The window to use in the calculation
    * @return {number} the frames index
    */
-  iframePosition(win) {
+  iframeNum(win) {
     if (win.parent != win) {
       for (var i = 0; i < win.parent.frames.length; i++) {
         if (win.parent.frames[i] == win) {
@@ -142,16 +162,17 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
   }
 
   /**
-   * Computes the full path of the frame in the root document.  Nested layers are seperated by '.'
+   * Computes the full path of the frame in the root document.  Nested layers
+   * are seperated by '.'
    *
    * @param {Window} win The window to use in the calculation
    * @return {string} The full path
    */
-  iframeFullPosition(win) {
-    if (this.iframePosition(win) < 0) {
+  iframePath(win) {
+    if (this.iframeNum(win) < 0) {
       return '0';
     } else {
-      return this.iframeFullPosition(win.parent) + '.' + this.iframePosition(win); 
+      return this.iframePath(win.parent) + '.' + this.iframeNum(win); 
     }
   }
 }
@@ -159,8 +180,8 @@ class HTMLSerializer { // TODO: BECAUSE MULTIPLE CONTENT SCRIPTS CAN BE INJECTED
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * Takes all of the srcHoles in the HTMLSerializer starting at index i, and creates data
- * urls for the resources, and places them in this.html
+ * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
+ * creates data urls for the resources, and places them in this.html
  *
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer
  * @param {number} i The index of this.srcHoles at which to start

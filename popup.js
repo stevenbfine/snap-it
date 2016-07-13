@@ -12,18 +12,23 @@ function click() {
     }
   });
 
-  chrome.tabs.executeScript(null, {file: 'content_script.js', allFrames: true}, function(response) { // TODO: FIGURE OUT WHY NOT ALL IFRAMES ARE GETTING CONTENT SCRIPTS INJECTED
-    results = response;
-    if (messages.length == results.length) {
-      completeProcess(messages);
-    }
-  });
+  chrome.tabs.executeScript(null, {file: 'content_script.js', allFrames: true},
+      function(response) { // TODO: FIGURE OUT WHY NOT ALL IFRAMES ARE GETTING
+                           //       CONTENT SCRIPTS INJECTED
+        results = response;
+        if (messages.length == results.length) {
+          completeProcess(messages);
+        }
+      }
+  );
 }
 
 /**
- * Takes all the responses from the injected content scripts and creates the HTML file for download
+ * Takes all the responses from the injected content scripts and creates the
+ * HTML file for download
  * 
- * @param {Array<Object>} messages The response from all of the injected content scripts.
+ * @param {Array<Object>} messages The response from all of the injected content
+ *     scripts.
  */
 function completeProcess(messages) {
   var html = outputHTMLString(messages);
@@ -37,9 +42,11 @@ function completeProcess(messages) {
 }
 
 /**
- * Converts the responses from the injected content scripts into a string representing the HTML.
+ * Converts the responses from the injected content scripts into a string
+ * representing the HTML.
  * 
- * @param {Array<Object>} messages The response from all of the injected content scripts.
+ * @param {Array<Object>} messages The response from all of the injected content
+ *     scripts.
  * @return {string} The resulting HTML
  */
 function outputHTMLString(messages) {
@@ -54,7 +61,8 @@ function outputHTMLString(messages) {
 /**
  * Fills all of the gaps in messages[i].html
  *
- * @param {Array<Object>} messages The response from all of the injected content scripts
+ * @param {Array<Object>} messages The response from all of the injected content
+ *     scripts
  * @param {number} i The index of messages to use
  * @param {number} depth How many parent iframes messages[i] has
  */
@@ -89,7 +97,8 @@ function fillRemainingHoles(messages, i, depth) {
 }
 
 /**
- * Calculate the correct quotes that should be used given how many parent iframes a given frame has
+ * Calculate the correct quotes that should be used given how many parent
+ * iframes a given frame has
  *
  * @param {number} depth The number of parent iframes
  * @return {string} The correctly escaped quotation marks
