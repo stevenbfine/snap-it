@@ -128,12 +128,10 @@ class HTMLSerializer {
    * Takes an html document, and populates this objects fields such that it can
    * eventually be converted into an html file.
    *
-   * @param {Document} doc The Document to serialize. Defaults to the current
-   *     document
+   * @param {Document} doc The Document to serialize
    * @public
    */ 
   processDocument(doc) {
-    doc = doc || document;
     this.html.push('<!DOCTYPE html>\n');
     var node = doc.firstChild;
     // TODO(sfine): verify that this will not cause an infinite loop.
@@ -229,6 +227,6 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 // TODO(sfine): check for testing in better way.
 if (typeof IS_TEST === typeof undefined || !IS_TEST) {
   var htmlSerializer = new HTMLSerializer();
-  htmlSerializer.processDocument();
+  htmlSerializer.processDocument(document);
   fillSrcHoles(htmlSerializer, 0, sendHTMLSerializerToExtension)
 }
