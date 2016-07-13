@@ -132,7 +132,7 @@ class HTMLSerializer {
    *     document
    * @public
    */ 
-  serializeDocument(doc) {
+  processDocument(doc) {
     doc = doc || document;
     this.html.push('<!DOCTYPE html>\n');
     var node = doc.firstChild;
@@ -229,6 +229,6 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 // TODO(sfine): check for testing in better way.
 if (typeof IS_TEST === typeof undefined || !IS_TEST) {
   var htmlSerializer = new HTMLSerializer();
-  htmlSerializer.serializeDocument();
+  htmlSerializer.processDocument();
   fillSrcHoles(htmlSerializer, 0, sendHTMLSerializerToExtension)
 }
