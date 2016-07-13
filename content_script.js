@@ -184,27 +184,27 @@ class HTMLSerializer {
  * creates data urls for the resources, and places them in |this.html|.
  *
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
- * @param {number} i The index of |this.srcHoles| at which to start.
+ * @param {number} index The index of |this.srcHoles| at which to start.
  * @param {Function} callback The callback function.
  */
-function fillSrcHoles(htmlSerializer, i, callback) {
-  if (i == Object.keys(htmlSerializer.srcHoles).length) {
+function fillSrcHoles(htmlSerializer, index, callback) {
+  if (index == Object.keys(htmlSerializer.srcHoles).length) {
     callback(htmlSerializer);
   } else {
-    var index = Object.keys(htmlSerializer.srcHoles)[i];
-    var src = htmlSerializer.srcHoles[index];
+    var srcIndex = Object.keys(htmlSerializer.srcHoles)[index];
+    var src = htmlSerializer.srcHoles[srcIndex];
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        htmlSerializer.html[index] = e.target.result;
-        fillSrcHoles(htmlSerializer, i+1, callback);
+        htmlSerializer.html[srcIndex] = e.target.result;
+        fillSrcHoles(htmlSerializer, index+1, callback);
       }
       reader.readAsDataURL(blob)
     }).catch(function(error) {
       console.log(error);
-      fillSrcHoles(htmlSerializer, i+1, callback);
+      fillSrcHoles(htmlSerializer, index+1, callback);
     });
   }
 }
