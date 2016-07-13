@@ -102,7 +102,7 @@ class HTMLSerializer {
         //              will always have attributes.
         if (tagName.toLowerCase() == 'iframe') {
           this.html.push('srcdoc=');
-          var path = this.iframePath(window);
+          var path = this.iframeFullyQualifiedName(window);
           var index = this.iframeIndex(element.contentWindow);
           this.frameHoles[this.html.length] = path + '.' + index;
           this.html.push(''); // entry where the iframe contents will go.
@@ -166,11 +166,13 @@ class HTMLSerializer {
    * @param {Window} win The window to use in the calculation.
    * @return {string} The full path.
    */
-  iframePath(win) {
+  iframeFullyQualifiedName(win) {
     if (this.iframeIndex(win) < 0) {
       return '0';
     } else {
-      return this.iframePath(win.parent) + '.' + this.iframeIndex(win); 
+      var fullyQualifiedName = this.iframeFullyQualifiedName(win.parent);
+      var index = this.iframeIndex(win);
+      return fullyQualifiedName + '.' + index; 
     }
   }
 }
