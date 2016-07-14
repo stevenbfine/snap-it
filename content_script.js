@@ -133,7 +133,7 @@ class HTMLSerializer {
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
     var nodes = doc.childNodes;
-    for (var i = 0, node; node = node[i]; i++) {
+    for (var i = 0, node; node = nodes[i]; i++) {
       if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
         this.processTree(node, 0);
       }
@@ -235,7 +235,7 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
     'srcHoles': htmlSerializer.srcHoles,
     'frameHoles': htmlSerializer.frameHoles,
     'styleIndices': htmlSerializer.styleIndices,
-    'frameIndex': htmlSerializer.iframeFullPosition(window)
+    'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };
   chrome.runtime.sendMessage(result);
 }
@@ -245,5 +245,5 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 if (typeof IS_TEST === typeof undefined || !IS_TEST) {
   var htmlSerializer = new HTMLSerializer();
   htmlSerializer.processDocument(document);
-  fillSrcHoles(htmlSerializer, 0, sendHTMLSerializerToExtension)
+  fillSrcHoles(htmlSerializer, sendHTMLSerializerToExtension)
 }
