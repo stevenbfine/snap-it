@@ -133,7 +133,7 @@ class HTMLSerializer {
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
     var nodes = doc.childNodes;
-    for (var i = 0; node; node = node[i]; i++) {
+    for (var i = 0, node; node = node[i]; i++) {
       if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
         this.processTree(node, 0);
       }
