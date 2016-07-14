@@ -206,6 +206,8 @@ function fillSrcHolesInternal(htmlSerializer, index, callback) {
   } else {
     var srcIndex = Object.keys(htmlSerializer.srcHoles)[index];
     var src = htmlSerializer.srcHoles[srcIndex];
+    // TODO(sfine): only create a data url if the src url is from the same
+    //              origin.
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
