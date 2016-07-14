@@ -133,6 +133,8 @@ class HTMLSerializer {
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
+    // Find the first child node of doc that is not of type
+    // Node.DOCUMENT_TYPE_NODE.
     var node = doc.firstChild;
     // TODO(sfine): verify that this will not cause an infinite loop.
     while (node.nodeType == Node.DOCUMENT_TYPE_NODE) {
