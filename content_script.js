@@ -90,7 +90,7 @@ class HTMLSerializer {
                 this.html.push(`${attribute.name}=`);
                 this.srcHoles[this.html.length] = attribute.value;
                 this.html.push(''); // entry where data url will go.
-                this.html.push(' ');
+                this.html.push(' '); // add a space before the next attribute.
               }
             case 'style':
               break;
