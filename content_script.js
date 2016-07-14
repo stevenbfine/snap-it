@@ -79,7 +79,7 @@ class HTMLSerializer {
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
       this.styleIndices.push(this.html.length);
-      this.html.push(`style="${style}" `);
+      this.html.push(`style="${style}" `); // TODO(sfine): fix the quotations
 
       var attributes = element.attributes;
       if (attributes) {
@@ -95,7 +95,7 @@ class HTMLSerializer {
             case 'style':
               break;
             default:
-              this.html.push(`${attribute.name}="${attribute.value}" `);
+              this.html.push(`${attribute.name}="${attribute.value}" `); // TODO(sfine): fix quotations
           }
         }
         // TODO(sfine): ensure this is working by making sure that an iframe
@@ -216,13 +216,15 @@ function fillSrcHolesInternal(htmlSerializer, index, callback) {
         htmlSerializer.html[srcIndex] = e.target.result;
         fillSrcHoles(htmlSerializer, index+1, callback);
       }
-      reader.readAsDataURL(blob)
+      reader.readAsDataURL(blob);
     }).catch(function(error) {
       console.log(error);
       fillSrcHoles(htmlSerializer, index+1, callback);
     });
   }
 }
+
+// TODO(sfine): perhaps handle images seperately.  at least store height and width
 
 /**
  * Send the neccessary HTMLSerializer properties back to the extension.
