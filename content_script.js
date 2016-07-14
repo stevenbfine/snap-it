@@ -106,7 +106,6 @@ class HTMLSerializer {
           var index = this.iframeIndex(element.contentWindow);
           this.frameHoles[this.html.length] = path + '.' + index;
           this.html.push(''); // entry where the iframe contents will go.
-          this.html.push(' ');
         }
       }
 
