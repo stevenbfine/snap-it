@@ -181,9 +181,9 @@ class HTMLSerializer {
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Takes all of the srcHoles in the HTMLSerializer, and
- * creates data urls for the resources, and places them in |this.html|. Calls
- * the callback when complete.
+ * Takes all of the srcHoles in the HTMLSerializer, and creates data urls for
+ * the resources, and places them in |this.html|. Calls the callback when
+ * complete.
  *
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  * @param {Function} callback The callback function.
