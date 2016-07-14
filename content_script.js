@@ -180,6 +180,18 @@ class HTMLSerializer {
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Takes all of the srcHoles in the HTMLSerializer, and
+ * creates data urls for the resources, and places them in |this.html|. Calls
+ * the callback when complete.
+ *
+ * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
+ * @param {Function} callback The callback function.
+ */
+ function fillSrcHoles(htmlSerializer, callback) {
+  fillSrcHolesInternal(htmlSerializer, 0, callback);
+ }
+
+/**
  * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
  * creates data urls for the resources, and places them in |this.html|. Calls
  * the callback when complete.
@@ -187,8 +199,9 @@ class HTMLSerializer {
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  * @param {number} index The index of |this.srcHoles| at which to start.
  * @param {Function} callback The callback function.
+ * @private
  */
-function fillSrcHoles(htmlSerializer, index, callback) {
+function fillSrcHolesInternal(htmlSerializer, index, callback) {
   if (index == Object.keys(htmlSerializer.srcHoles).length) {
     callback(htmlSerializer);
   } else {
