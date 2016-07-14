@@ -4,7 +4,8 @@
  * html text file.
  */
  // TODO(sfine): fix 'Identifier "HTMLSerializer" has already been declared'
- //              error.
+ //              error. Check if this is a problem? -> might only happen on
+ //              second click.
 class HTMLSerializer {
   constructor() {
 
@@ -13,6 +14,7 @@ class HTMLSerializer {
      *     ignored while serializing a document.
      * @const
      */
+     // TODO(sfine): process links
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
@@ -177,7 +179,6 @@ class HTMLSerializer {
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
 /**
  * Takes all of the srcHoles in the HTMLSerializer, and creates data urls for
  * the resources, and places them in |this.html|. Calls the callback when
