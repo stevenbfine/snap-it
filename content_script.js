@@ -146,13 +146,13 @@ class HTMLSerializer {
   /**
    * Computes the index of the window in its parent's array of frames.
    *
-   * @param {Window} win The window to use in the calculation.
+   * @param {Window} childWindow The window to use in the calculation.
    * @return {number} the frames index.
    */
-  iframeIndex(win) {
-    if (win.parent != win) {
-      for (var i = 0; i < win.parent.frames.length; i++) {
-        if (win.parent.frames[i] == win) {
+  iframeIndex(childWindow) {
+    if (childWindow.parent != childWindow) {
+      for (var i = 0; i < childWindow.parent.frames.length; i++) {
+        if (childWindow.parent.frames[i] == childWindow) {
           return i;
         }
       }
