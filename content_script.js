@@ -168,10 +168,10 @@ class HTMLSerializer {
   }
 
   /**
-   * Calculate the correct quotes that should be used given how many parent
-   * windows a given window has.
+   * Calculate the correct quotes that should be used given the nesting depth of
+   * the window in the frame tree.
    *
-   * @param {number} depth The number of parent windows.
+   * @param {number} depth The nesting depth of this window in the frame tree.
    * @return {string} The correctly escaped quotation marks.
    */
   escapedQuote(depth) {
@@ -183,10 +183,10 @@ class HTMLSerializer {
   }
 
   /**
-   * Calculate number of parent windows a given window has.
+   * Calculate the nesting depth of a window in the frame tree.
    *
    * @param {Window} win The window to use in the calculation.
-   * @return {number} The number of parent windows.
+   * @return {number} The nesting depth of the window in the frame trees.
    */
   getDepth(win) {
     return this.iframeFullyQualifiedName(win).split('.').length - 1;
