@@ -69,8 +69,9 @@ class HTMLSerializer {
 
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
-      style = style.replace(/"/g, this.escapedQuote(this.getDepth(window)+1));
-      var quotes = this.getQuotes(this.getDepth(window));
+      var windowDepth = this.windowDepth(window);
+      style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
+      var quotes = this.getQuotes(windowDepth);
       this.html.push(`style=${quotes}${style}${quotes} `);
 
       var attributes = element.attributes;
@@ -188,7 +189,7 @@ class HTMLSerializer {
    * @param {Window} win The window to use in the calculation.
    * @return {number} The nesting depth of the window in the frame trees.
    */
-  getDepth(win) {
+  windowDepth(win) {
     return this.iframeFullyQualifiedName(win).split('.').length - 1;
   }
 }
@@ -217,7 +218,8 @@ function fillSrcHoles(htmlSerializer, callback) {
     }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        var quotes = htmlSerializer.escapedQuote(htmlSerializer.getDepth(window));
+        var windowDepth = htmlSerializer.windowDepth(window);
+        var quotes = htmlSerializer.escapedQuote(windowDepth);
         htmlSerializer.html[index] = quotes + e.target.result + quotes;
         fillSrcHoles(htmlSerializer, callback);
       }
