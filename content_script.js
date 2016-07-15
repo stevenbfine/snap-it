@@ -44,17 +44,6 @@ class HTMLSerializer {
      *     |this.html|.
      */
     this.frameHoles = {};
-
-    /**
-     * @public {Array<number>} Each number in |this.styleIndices| corresponds to
-     *     an index in |this.html| at which a serialized style attribute is
-     *     located. This is because there are styles that contain quotation
-     *     marks. Because any given document being serialized could be an iframe
-     *     which is nested 1 or more levels into the root document, the exact
-     *     quotes that will be used must be determined when the frames are being
-     *     put together, so that they can be properly escaped.
-     */
-    this.styleIndices = [];
   }
 
   /**
@@ -78,10 +67,12 @@ class HTMLSerializer {
       this.html.push(new Array(depth+1).join('  '));
       this.html.push(`<${tagName.toLowerCase()} `);
 
+      var depth = this.iframeFullyQualifiedName(window).split('.').length - 1;
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
-      this.styleIndices.push(this.html.length);
-      this.html.push(`style="${style}" `); // TODO(sfine): fix the quotations
+      style = style.replace(/"/g, this.getQuotes(depth+1));
+      var quotes = this.getQuotes(depth);
+      this.html.push(`style=${quotes}${style}${quotes} `);
 
       var attributes = element.attributes;
       if (attributes) {
@@ -97,7 +88,7 @@ class HTMLSerializer {
             case 'style':
               break;
             default:
-              this.html.push(`${attribute.name}="${attribute.value}" `); // TODO(sfine): fix quotations
+              this.html.push(`${attribute.name}=${quotes}${attribute.value}${quotes} `);
           }
         }
         // TODO(sfine): ensure this is working by making sure that an iframe
@@ -176,6 +167,21 @@ class HTMLSerializer {
       return fullyQualifiedName + '.' + index; 
     }
   }
+
+  /**
+   * Calculate the correct quotes that should be used given how many parent
+   * iframes a given frame has.
+   *
+   * @param {number} depth The number of parent iframes.
+   * @return {string} The correctly escaped quotation marks.
+   */
+  function getQuotes(depth) {
+    if (depth == 0) {
+      return '"';
+    } else {
+      return '&' + new Array(depth).join('amp;') + 'quot;';
+    }
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +243,6 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
     'html': htmlSerializer.html,
     'srcHoles': htmlSerializer.srcHoles,
     'frameHoles': htmlSerializer.frameHoles,
-    'styleIndices': htmlSerializer.styleIndices,
     'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };
   chrome.runtime.sendMessage(result);

@@ -89,11 +89,6 @@ function fillRemainingHoles(messages, i, depth) {
       html[srcIndex] = quotes + html[srcIndex] + quotes;
     }
   }
-  var styleIndices = messages[i].styleIndices;
-  for (var i = 0; i < styleIndices.length; i++) {
-    var style = html[styleIndices[i]];
-    html[styleIndices[i]] = style.replace(/"/g, quotes);
-  }
 }
 
 /**
