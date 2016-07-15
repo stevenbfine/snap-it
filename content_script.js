@@ -96,9 +96,8 @@ class HTMLSerializer {
         //              will always have attributes.
         if (tagName.toLowerCase() == 'iframe') {
           this.html.push('srcdoc=');
-          var path = this.iframeFullyQualifiedName(window);
-          var index = this.iframeIndex(element.contentWindow);
-          this.frameHoles[this.html.length] = path + '.' + index;
+          var name = this.iframeFullyQualifiedName(element.contentWindow);
+          this.frameHoles[this.html.length] = name;
           this.html.push(''); // Entry where the iframe contents will go.
         }
       }
