@@ -79,12 +79,7 @@ class HTMLSerializer {
         for (var i = 0, attribute; attribute = attributes[i]; i++) {
           switch (attribute.name.toLowerCase())  {
             case 'src':
-              if (tagName.toLowerCase() != 'iframe') {
-                this.html.push(`${attribute.name}=`);
-                this.srcHoles[this.html.length] = attribute.value;
-                this.html.push(''); // Entry where data url will go.
-                this.html.push(' '); // Add a space before the next attribute.
-              }
+              this.processSrcAttribute(element);
             case 'style':
               break;
             default:
@@ -131,6 +126,53 @@ class HTMLSerializer {
         this.processTree(node, 0);
       }
     }
+  }
+
+  /**
+   * 
+   */
+  processSrcAttribute(element) {
+    swich(element.tagName.toLowerCase()) {
+      case 'iframe':
+        break;
+      case 'img':
+        break;
+      case 'imput':
+        break;
+      case 'audio':
+        break;
+      case 'embed':
+        break;
+      case 'source':
+        break;
+      case 'video':
+        break;
+
+    }
+    this.html.push(`${attribute.name}=`);
+    this.srcHoles[this.html.length] = attribute.value;
+    this.html.push(''); // Entry where data url will go.
+    this.html.push(' '); // Add a space before the next attribute.
+  }
+
+  /**
+   *
+   */
+  addSrcHole(element) {
+    var src = element.attributes.src;
+    this.html.push(`${src.name}=`);
+    this.srcHoles[this.html.length] = src.value;
+    this.html.push(''); // Entry where data url will go.
+    this.html.push(' '); // Add a space before the next attribute.
+  }
+
+  /**
+   *
+   */
+  simpleSrc(element) {
+    var src = element.attributes.src;
+    var quotes = this.getQuotes(this.getDepth(window));
+    this.html.push(`${src.name}=${quotes}${src.value}${quotes} `);
   }
 
   /**
