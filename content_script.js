@@ -66,12 +66,11 @@ class HTMLSerializer {
     } else {
       this.html.push(new Array(depth+1).join('  '));
       this.html.push(`<${tagName.toLowerCase()} `);
-
-      var depth = this.iframeFullyQualifiedName(window).split('.').length - 1;
+;
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
-      style = style.replace(/"/g, this.getQuotes(depth+1));
-      var quotes = this.getQuotes(depth);
+      style = style.replace(/"/g, this.getQuotes(this.getDepth(window)+1));
+      var quotes = this.getQuotes(this.getDepth(window));
       this.html.push(`style=${quotes}${style}${quotes} `);
 
       var attributes = element.attributes;
@@ -170,9 +169,9 @@ class HTMLSerializer {
 
   /**
    * Calculate the correct quotes that should be used given how many parent
-   * iframes a given frame has.
+   * windows a given window has.
    *
-   * @param {number} depth The number of parent iframes.
+   * @param {number} depth The number of parent windows.
    * @return {string} The correctly escaped quotation marks.
    */
   getQuotes(depth) {
@@ -181,6 +180,16 @@ class HTMLSerializer {
     } else {
       return '&' + new Array(depth).join('amp;') + 'quot;';
     }
+  }
+
+  /**
+   * Calculate number of parent windows a given window has.
+   *
+   * @param {Window} win The window to use in the calculation.
+   * @return {number} The number of parent windows.
+   */
+  getDepth(win) {
+    return this.iframeFullyQualifiedName(win).split('.').length - 1;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,26 +202,13 @@ class HTMLSerializer {
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  * @param {Function} callback The callback function.
  */
- function fillSrcHoles(htmlSerializer, callback) {
-  fillSrcHolesInternal(htmlSerializer, 0, callback);
- }
-
-/**
- * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
- * creates data urls for the resources, and places them in |this.html|. Calls
- * the callback when complete.
- *
- * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
- * @param {number} index The index of |this.srcHoles| at which to start.
- * @param {Function} callback The callback function.
- * @private
- */
-function fillSrcHolesInternal(htmlSerializer, index, callback) {
-  if (index == Object.keys(htmlSerializer.srcHoles).length) {
+function fillSrcHoles(htmlSerializer, callback) {
+  if (Object.keys(htmlSerializer.srcHoles).length == 0) {
     callback(htmlSerializer);
   } else {
-    var srcIndex = Object.keys(htmlSerializer.srcHoles)[index];
-    var src = htmlSerializer.srcHoles[srcIndex];
+    var index = Object.keys(htmlSerializer.srcHoles)[0];
+    var src = htmlSerializer.srcHoles[index];
+    delete htmlSerializer.srcHoles[index];
     // TODO(sfine): only create a data url if the src url is from the same
     //              origin.
     fetch(src).then(function(response) {
@@ -220,13 +216,14 @@ function fillSrcHolesInternal(htmlSerializer, index, callback) {
     }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        htmlSerializer.html[srcIndex] = e.target.result;
-        fillSrcHoles(htmlSerializer, index+1, callback);
+        var quotes = htmlSerializer.getQuotes(htmlSerializer.getDepth(window));
+        htmlSerializer.html[index] = quotes + e.target.result + quotes;
+        fillSrcHoles(htmlSerializer, callback);
       }
       reader.readAsDataURL(blob);
     }).catch(function(error) {
       console.log(error);
-      fillSrcHoles(htmlSerializer, index+1, callback);
+      fillSrcHoles(htmlSerializer, callback);
     });
   }
 }
@@ -241,7 +238,6 @@ function fillSrcHolesInternal(htmlSerializer, index, callback) {
 function sendHTMLSerializerToExtension(htmlSerializer) {
   var result = {
     'html': htmlSerializer.html,
-    'srcHoles': htmlSerializer.srcHoles,
     'frameHoles': htmlSerializer.frameHoles,
     'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };

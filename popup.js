@@ -82,13 +82,6 @@ function fillRemainingHoles(messages, i, depth) {
       }
     }
   }
-  var srcHoles = messages[i].srcHoles;
-  for (var index in srcHoles) {
-    if (srcHoles.hasOwnProperty(index)) {
-      var srcIndex = srcHoles[index];
-      html[srcIndex] = quotes + html[srcIndex] + quotes;
-    }
-  }
 }
 
 /**
