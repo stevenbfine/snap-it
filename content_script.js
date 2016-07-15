@@ -151,6 +151,8 @@ class HTMLSerializer {
         break;
       case 'video':
         break;
+      default:
+        simpleSrc(element);
     }
   }
 
