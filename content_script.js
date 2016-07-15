@@ -122,7 +122,6 @@ class HTMLSerializer {
    * eventually be converted into an html file.
    *
    * @param {Document} doc The Document to serialize.
-   * @public
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
