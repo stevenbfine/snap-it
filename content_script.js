@@ -3,7 +3,7 @@
  * of strings and stores enough state to later asynchronously convert it into an
  * html text file.
  */
- // TODO(sfine): fix 'Identifier "HTMLSerializer" has already been declared'
+ // TODO(sfine): Fix 'Identifier "HTMLSerializer" has already been declared'
  //              error. Check if this is a problem? -> might only happen on
  //              second click.
 class HTMLSerializer {
@@ -14,7 +14,7 @@ class HTMLSerializer {
      *     ignored while serializing a document.
      * @const
      */
-     // TODO(sfine): process links
+     // TODO(sfine): Process links.
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
@@ -39,9 +39,9 @@ class HTMLSerializer {
 
     /**
      * @public {Object<number, string>} The keys represent an index in
-     *     |this.html|. The value is a string that uniquely identifies an iframe,
-     *     the serialized contents of which should be placed at that index of
-     *     |this.html|.
+     *     |this.html|. The value is a string that uniquely identifies an
+     *     iframe, the serialized contents of which should be placed at that
+     *     index of |this.html|.
      */
     this.frameHoles = {};
   }
@@ -58,9 +58,9 @@ class HTMLSerializer {
   processTree(element, depth) {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
-      // ignore elements that don't have tags and are not text.
+      // Ignore elements that don't have tags and are not text.
     } else if (tagName && this.FILTERED_TAGS.has(tagName.toLowerCase())) {
-      // filter out elements that are in filteredTags.
+      // Filter out elements that are in filteredTags.
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
     } else {
@@ -81,8 +81,8 @@ class HTMLSerializer {
               if (tagName.toLowerCase() != 'iframe') {
                 this.html.push(`${attribute.name}=`);
                 this.srcHoles[this.html.length] = attribute.value;
-                this.html.push(''); // entry where data url will go.
-                this.html.push(' '); // add a space before the next attribute.
+                this.html.push(''); // Entry where data url will go.
+                this.html.push(' '); // Add a space before the next attribute.
               }
             case 'style':
               break;
@@ -92,14 +92,14 @@ class HTMLSerializer {
               this.html.push(`${name}=${quotes}${value}${quotes} `);
           }
         }
-        // TODO(sfine): ensure this is working by making sure that an iframe
+        // TODO(sfine): Ensure this is working by making sure that an iframe
         //              will always have attributes.
         if (tagName.toLowerCase() == 'iframe') {
           this.html.push('srcdoc=');
           var path = this.iframeFullyQualifiedName(window);
           var index = this.iframeIndex(element.contentWindow);
           this.frameHoles[this.html.length] = path + '.' + index;
-          this.html.push(''); // entry where the iframe contents will go.
+          this.html.push(''); // Entry where the iframe contents will go.
         }
       }
 
@@ -210,8 +210,9 @@ function fillSrcHoles(htmlSerializer, callback) {
     var index = Object.keys(htmlSerializer.srcHoles)[0];
     var src = htmlSerializer.srcHoles[index];
     delete htmlSerializer.srcHoles[index];
-    // TODO(sfine): only create a data url if the src url is from the same
-    //              origin.
+    // TODO(sfine): Only create a data url if the src url is from the same
+    //              origin. Additionally, process imgs, videos, etc..
+    //              differently.
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
@@ -229,8 +230,8 @@ function fillSrcHoles(htmlSerializer, callback) {
   }
 }
 
-// TODO(sfine): perhaps handle images seperately.  at least store height and width
-
+// TODO(sfine): Perhaps handle images seperately. At least store height and
+//              width.
 /**
  * Send the neccessary HTMLSerializer properties back to the extension.
  *
