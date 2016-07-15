@@ -132,7 +132,7 @@ class HTMLSerializer {
    * 
    */
   processSrcAttribute(element) {
-    swich(element.tagName.toLowerCase()) {
+    switch(element.tagName.toLowerCase()) {
       case 'iframe':
         break;
       case 'img':
