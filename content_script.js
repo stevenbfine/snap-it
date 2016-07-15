@@ -175,7 +175,7 @@ class HTMLSerializer {
    * @param {number} depth The number of parent iframes.
    * @return {string} The correctly escaped quotation marks.
    */
-  function getQuotes(depth) {
+  getQuotes(depth) {
     if (depth == 0) {
       return '"';
     } else {
