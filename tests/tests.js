@@ -15,16 +15,16 @@ QUnit.test('getDepth: multiple parent windows', function(assert) {
   assert.equal(serializer.getDepth(grandChildFrame.contentWindow), 2);
 });
 
-QUnit.test('getQuotes: zero depth', function(assert) {
+QUnit.test('escapedQuote: zero depth', function(assert) {
   var serializer = new HTMLSerializer();
-  assert.equal(serializer.getQuotes(0), '"');
+  assert.equal(serializer.escapedQuote(0), '"');
 });
 
-QUnit.test('getQuotes: nonzero depth', function(assert) {
+QUnit.test('escapedQuote: nonzero depth', function(assert) {
   var serializer = new HTMLSerializer();
-  assert.equal(serializer.getQuotes(1), '&quot;');
-  assert.equal(serializer.getQuotes(2), '&amp;quot;');
-  assert.equal(serializer.getQuotes(3), '&amp;amp;quot;');
+  assert.equal(serializer.escapedQuote(1), '&quot;');
+  assert.equal(serializer.escapedQuote(2), '&amp;quot;');
+  assert.equal(serializer.escapedQuote(3), '&amp;amp;quot;');
 });
 
 QUnit.test('iframeIndex: single layer', function(assert) {

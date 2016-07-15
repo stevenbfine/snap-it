@@ -69,7 +69,7 @@ class HTMLSerializer {
 
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
-      style = style.replace(/"/g, this.getQuotes(this.getDepth(window)+1));
+      style = style.replace(/"/g, this.escapedQuote(this.getDepth(window)+1));
       var quotes = this.getQuotes(this.getDepth(window));
       this.html.push(`style=${quotes}${style}${quotes} `);
 
@@ -174,7 +174,7 @@ class HTMLSerializer {
    * @param {number} depth The number of parent windows.
    * @return {string} The correctly escaped quotation marks.
    */
-  getQuotes(depth) {
+  escapedQuote(depth) {
     if (depth == 0) {
       return '"';
     } else {
@@ -217,7 +217,7 @@ function fillSrcHoles(htmlSerializer, callback) {
     }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        var quotes = htmlSerializer.getQuotes(htmlSerializer.getDepth(window));
+        var quotes = htmlSerializer.escapedQuote(htmlSerializer.getDepth(window));
         htmlSerializer.html[index] = quotes + e.target.result + quotes;
         fillSrcHoles(htmlSerializer, callback);
       }
