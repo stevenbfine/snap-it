@@ -3,7 +3,7 @@
  * of strings and stores enough state to later asynchronously convert it into an
  * html text file.
  */
- // TODO(sfine): fix 'Identifier "HTMLSerializer" has already been declared'
+ // TODO(sfine): Fix 'Identifier "HTMLSerializer" has already been declared'
  //              error. Check if this is a problem? -> might only happen on
  //              second click.
 class HTMLSerializer {
@@ -14,7 +14,7 @@ class HTMLSerializer {
      *     ignored while serializing a document.
      * @const
      */
-     // TODO(sfine): process links
+     // TODO(sfine): Process links.
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
@@ -39,22 +39,11 @@ class HTMLSerializer {
 
     /**
      * @public {Object<number, string>} The keys represent an index in
-     *     |this.html|. The value is a string that uniquely identifies an iframe,
-     *     the serialized contents of which should be placed at that index of
-     *     |this.html|.
+     *     |this.html|. The value is a string that uniquely identifies an
+     *     iframe, the serialized contents of which should be placed at that
+     *     index of |this.html|.
      */
     this.frameHoles = {};
-
-    /**
-     * @public {Array<number>} Each number in |this.styleIndices| corresponds to
-     *     an index in |this.html| at which a serialized style attribute is
-     *     located. This is because there are styles that contain quotation
-     *     marks. Because any given document being serialized could be an iframe
-     *     which is nested 1 or more levels into the root document, the exact
-     *     quotes that will be used must be determined when the frames are being
-     *     put together, so that they can be properly escaped.
-     */
-    this.styleIndices = [];
   }
 
   /**
@@ -69,9 +58,9 @@ class HTMLSerializer {
   processTree(element, depth) {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
-      // ignore elements that don't have tags and are not text.
+      // Ignore elements that don't have tags and are not text.
     } else if (tagName && this.FILTERED_TAGS.has(tagName.toLowerCase())) {
-      // filter out elements that are in filteredTags.
+      // Filter out elements that are in filteredTags.
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
     } else {
@@ -80,8 +69,10 @@ class HTMLSerializer {
 
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
-      this.styleIndices.push(this.html.length);
-      this.html.push(`style="${style}" `); // TODO(sfine): fix the quotations
+      var windowDepth = this.windowDepth(window);
+      style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
+      var quotes = this.escapedQuote(windowDepth);
+      this.html.push(`style=${quotes}${style}${quotes} `);
 
       var attributes = element.attributes;
       if (attributes) {
@@ -91,23 +82,24 @@ class HTMLSerializer {
               if (tagName.toLowerCase() != 'iframe') {
                 this.html.push(`${attribute.name}=`);
                 this.srcHoles[this.html.length] = attribute.value;
-                this.html.push(''); // entry where data url will go.
-                this.html.push(' '); // add a space before the next attribute.
+                this.html.push(''); // Entry where data url will go.
+                this.html.push(' '); // Add a space before the next attribute.
               }
             case 'style':
               break;
             default:
-              this.html.push(`${attribute.name}="${attribute.value}" `); // TODO(sfine): fix quotations
+              var name = attribute.name;
+              var value = attribute.value;
+              this.html.push(`${name}=${quotes}${value}${quotes} `);
           }
         }
-        // TODO(sfine): ensure this is working by making sure that an iframe
+        // TODO(sfine): Ensure this is working by making sure that an iframe
         //              will always have attributes.
         if (tagName.toLowerCase() == 'iframe') {
           this.html.push('srcdoc=');
-          var path = this.iframeFullyQualifiedName(window);
-          var index = this.iframeIndex(element.contentWindow);
-          this.frameHoles[this.html.length] = path + '.' + index;
-          this.html.push(''); // entry where the iframe contents will go.
+          var name = this.iframeFullyQualifiedName(element.contentWindow);
+          this.frameHoles[this.html.length] = name;
+          this.html.push(''); // Entry where the iframe contents will go.
         }
       }
 
@@ -130,7 +122,6 @@ class HTMLSerializer {
    * eventually be converted into an html file.
    *
    * @param {Document} doc The Document to serialize.
-   * @public
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
@@ -176,6 +167,31 @@ class HTMLSerializer {
       return fullyQualifiedName + '.' + index; 
     }
   }
+
+  /**
+   * Calculate the correct quotes that should be used given the nesting depth of
+   * the window in the frame tree.
+   *
+   * @param {number} depth The nesting depth of this window in the frame tree.
+   * @return {string} The correctly escaped quotation marks.
+   */
+  escapedQuote(depth) {
+    if (depth == 0) {
+      return '"';
+    } else {
+      return '&' + new Array(depth).join('amp;') + 'quot;';
+    }
+  }
+
+  /**
+   * Calculate the nesting depth of a window in the frame tree.
+   *
+   * @param {Window} win The window to use in the calculation.
+   * @return {number} The nesting depth of the window in the frame trees.
+   */
+  windowDepth(win) {
+    return this.iframeFullyQualifiedName(win).split('.').length - 1;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -187,46 +203,36 @@ class HTMLSerializer {
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  * @param {Function} callback The callback function.
  */
- function fillSrcHoles(htmlSerializer, callback) {
-  fillSrcHolesInternal(htmlSerializer, 0, callback);
- }
-
-/**
- * Takes all of the srcHoles in the HTMLSerializer starting at index i, and
- * creates data urls for the resources, and places them in |this.html|. Calls
- * the callback when complete.
- *
- * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
- * @param {number} index The index of |this.srcHoles| at which to start.
- * @param {Function} callback The callback function.
- * @private
- */
-function fillSrcHolesInternal(htmlSerializer, index, callback) {
-  if (index == Object.keys(htmlSerializer.srcHoles).length) {
+function fillSrcHoles(htmlSerializer, callback) {
+  if (Object.keys(htmlSerializer.srcHoles).length == 0) {
     callback(htmlSerializer);
   } else {
-    var srcIndex = Object.keys(htmlSerializer.srcHoles)[index];
-    var src = htmlSerializer.srcHoles[srcIndex];
-    // TODO(sfine): only create a data url if the src url is from the same
-    //              origin.
+    var index = Object.keys(htmlSerializer.srcHoles)[0];
+    var src = htmlSerializer.srcHoles[index];
+    delete htmlSerializer.srcHoles[index];
+    // TODO(sfine): Only create a data url if the src url is from the same
+    //              origin. Additionally, process imgs, videos, etc..
+    //              differently.
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        htmlSerializer.html[srcIndex] = e.target.result;
-        fillSrcHoles(htmlSerializer, index+1, callback);
+        var windowDepth = htmlSerializer.windowDepth(window);
+        var quotes = htmlSerializer.escapedQuote(windowDepth);
+        htmlSerializer.html[index] = quotes + e.target.result + quotes;
+        fillSrcHoles(htmlSerializer, callback);
       }
       reader.readAsDataURL(blob);
     }).catch(function(error) {
       console.log(error);
-      fillSrcHoles(htmlSerializer, index+1, callback);
+      fillSrcHoles(htmlSerializer, callback);
     });
   }
 }
 
-// TODO(sfine): perhaps handle images seperately.  at least store height and width
-
+// TODO(sfine): Perhaps handle images seperately. At least store height and
+//              width.
 /**
  * Send the neccessary HTMLSerializer properties back to the extension.
  *
@@ -235,9 +241,7 @@ function fillSrcHolesInternal(htmlSerializer, index, callback) {
 function sendHTMLSerializerToExtension(htmlSerializer) {
   var result = {
     'html': htmlSerializer.html,
-    'srcHoles': htmlSerializer.srcHoles,
     'frameHoles': htmlSerializer.frameHoles,
-    'styleIndices': htmlSerializer.styleIndices,
     'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };
   chrome.runtime.sendMessage(result);
@@ -248,5 +252,5 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 if (typeof IS_TEST === typeof undefined || !IS_TEST) {
   var htmlSerializer = new HTMLSerializer();
   htmlSerializer.processDocument(document);
-  fillSrcHoles(htmlSerializer, sendHTMLSerializerToExtension)
+  fillSrcHoles(htmlSerializer, sendHTMLSerializerToExtension);
 }
