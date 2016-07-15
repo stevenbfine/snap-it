@@ -71,7 +71,7 @@ class HTMLSerializer {
       var style = win.getComputedStyle(element, null).cssText;
       var windowDepth = this.windowDepth(window);
       style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
-      var quotes = this.getQuotes(windowDepth);
+      var quotes = this.escapedQuote(windowDepth);
       this.html.push(`style=${quotes}${style}${quotes} `);
 
       var attributes = element.attributes;

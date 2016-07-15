@@ -1,9 +1,9 @@
-QUnit.test('getDepth: no parent window', function(assert) {
+QUnit.test('windowDepth: no parent window', function(assert) {
   var serializer = new HTMLSerializer();
-  assert.equal(serializer.getDepth(window), 0);
+  assert.equal(serializer.windowDepth(window), 0);
 });
 
-QUnit.test('getDepth: multiple parent windows', function(assert) {
+QUnit.test('windowDepth: multiple parent windows', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var childFrame = document.createElement('iframe');
@@ -11,8 +11,8 @@ QUnit.test('getDepth: multiple parent windows', function(assert) {
   var childFrameBody = childFrame.contentDocument.body;
   var grandChildFrame = document.createElement('iframe');
   childFrameBody.appendChild(grandChildFrame);
-  assert.equal(serializer.getDepth(childFrame.contentWindow), 1);
-  assert.equal(serializer.getDepth(grandChildFrame.contentWindow), 2);
+  assert.equal(serializer.windowDepth(childFrame.contentWindow), 1);
+  assert.equal(serializer.windowDepth(grandChildFrame.contentWindow), 2);
 });
 
 QUnit.test('escapedQuote: zero depth', function(assert) {
