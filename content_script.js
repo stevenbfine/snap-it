@@ -87,7 +87,9 @@ class HTMLSerializer {
             case 'style':
               break;
             default:
-              this.html.push(`${attribute.name}=${quotes}${attribute.value}${quotes} `);
+              var name = attribute.name;
+              var value = attribute.value;
+              this.html.push(`${name}=${quotes}${value}${quotes} `);
           }
         }
         // TODO(sfine): ensure this is working by making sure that an iframe
