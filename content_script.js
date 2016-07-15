@@ -66,7 +66,7 @@ class HTMLSerializer {
     } else {
       this.html.push(new Array(depth+1).join('  '));
       this.html.push(`<${tagName.toLowerCase()} `);
-;
+
       var win = element.ownerDocument.defaultView;
       var style = win.getComputedStyle(element, null).cssText;
       style = style.replace(/"/g, this.getQuotes(this.getDepth(window)+1));
