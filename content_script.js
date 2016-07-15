@@ -249,5 +249,5 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 if (typeof IS_TEST === typeof undefined || !IS_TEST) {
   var htmlSerializer = new HTMLSerializer();
   htmlSerializer.processDocument(document);
-  fillSrcHoles(htmlSerializer, sendHTMLSerializerToExtension)
+  fillSrcHoles(htmlSerializer, sendHTMLSerializerToExtension);
 }
