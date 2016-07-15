@@ -129,7 +129,11 @@ class HTMLSerializer {
   }
 
   /**
-   * 
+   * Process the src attribute of a given element.
+   *
+   * @param {Element} element The element being processed, which has the src
+   *     attribute.
+   * @private
    */
   processSrcAttribute(element) {
     switch(element.tagName.toLowerCase()) {
@@ -147,16 +151,15 @@ class HTMLSerializer {
         break;
       case 'video':
         break;
-
     }
-    this.html.push(`${attribute.name}=`);
-    this.srcHoles[this.html.length] = attribute.value;
-    this.html.push(''); // Entry where data url will go.
-    this.html.push(' '); // Add a space before the next attribute.
   }
 
   /**
+   * Add an entry to |this.srcHoles| so it can be processed asynchronously.
    *
+   * @param {Element} element The element being processed, which has the src
+   *     attribute.
+   * @private
    */
   addSrcHole(element) {
     var src = element.attributes.src;
@@ -167,7 +170,12 @@ class HTMLSerializer {
   }
 
   /**
+   * Simply add an attribute to |this.html| reflecting the src name and src
+   * value.
    *
+   * @param {Element} element The element being processed, which has the src
+   *     attribute.
+   * @private
    */
   simpleSrc(element) {
     var src = element.attributes.src;
