@@ -141,7 +141,7 @@ class HTMLSerializer {
         break;
       case 'img':
         break;
-      case 'imput':
+      case 'input':
         break;
       case 'audio':
         break;
