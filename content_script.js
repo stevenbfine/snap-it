@@ -1,3 +1,5 @@
+console.log('hello');
+
 /**
  * HTML serializer that takes a document and synchronously stores it as an array
  * of strings and stores enough state to later asynchronously convert it into an
@@ -15,6 +17,27 @@ class HTMLSerializer {
      * @const
      */
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style']);
+
+    /**
+     * @private {Set<string>} Contains the lower case tag names for elements
+     *     that have no closing tags.
+     * @const
+     */
+    this.NO_TRAILING_TAGS = new Set([
+      'area',
+      'base',
+      'br',
+      'col',
+      'command',
+      'embed',
+      'hr',
+      'img',
+      'input',
+      'link',
+      'meta',
+      'param',
+      'source'
+    ]);
 
     /**
      * @public {Array<string>} This array represents the serialized html that
@@ -68,7 +91,9 @@ class HTMLSerializer {
         }
       }
 
-      this.html.push(`</${tagName.toLowerCase()}>`);
+      if (!this.NO_TRAILING_TAGS.has(tagName.toLowerCase())) {
+        this.html.push(`</${tagName.toLowerCase()}>`);
+      }
     }
   
 }
