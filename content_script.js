@@ -1,5 +1,3 @@
-console.log('hello');
-
 /**
  * HTML serializer that takes a document and synchronously stores it as an array
  * of strings and stores enough state to later asynchronously convert it into an
