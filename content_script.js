@@ -69,7 +69,6 @@ class HTMLSerializer {
       }
 
       this.html.push(`</${tagName.toLowerCase()}>`);
-
     }
   
 }
@@ -268,6 +267,9 @@ function fillSrcHoles(htmlSerializer, callback) {
     var index = Object.keys(htmlSerializer.srcHoles)[0];
     var src = htmlSerializer.srcHoles[index];
     delete htmlSerializer.srcHoles[index];
+    // TODO(sfine): Only create a data url if the src url is from the same
+    //              origin. Additionally, process imgs, videos, etc..
+    //              differently.
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
