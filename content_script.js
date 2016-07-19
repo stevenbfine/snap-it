@@ -143,8 +143,7 @@ class HTMLSerializer {
             if (!attributeSet.has(attribute.name.toLowerCase())) {
               var name = attribute.name;
               var value = attribute.value;
-              this.addSimpleAttribute(name, value);
-              attributeSet.add(name.toLowerCase());
+              this.addSimpleAttribute(name, value, attributeSet);
             }
         }
       }
@@ -183,8 +182,7 @@ class HTMLSerializer {
         }
       case 'img':
         if (window.location.host == this.srcURL(element).host) {
-          this.addSrcHole(element);
-          attributeSet.add('src');
+          this.addSrcHole(element, attributeSet);
           break;
         }
       default:
@@ -210,18 +208,22 @@ class HTMLSerializer {
   }
 
   /**
-   * Add an entry to |this.srcHoles| so it can be processed asynchronously.
+   * Add an entry to |this.srcHoles| so it can be processed asynchronously, and
+   * mark that a src attribute has been added in |attributeSet|.
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
+   * @param {Set<string>} attributeSet The Set containing all attributes already added
+   *     to the Element.
    * @private
    */
-  addSrcHole(element) {
+  addSrcHole(element, attributeSet) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
     this.srcHoles[this.html.length] = this.srcURL(element).href;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
+    attributeSet.add('src');
   }
 
   /**
@@ -236,26 +238,29 @@ class HTMLSerializer {
     // TODO(sfine): Ensure that this is working.  Perhaps don't always want to
     //              be setting height and width.
     if (!attributeSet.has('height')) {
-      this.addSimpleAttribute('height', element.clientHeight.toString());
-      attributeSet.add('height');
+      var height = element.clientHeight.toString();
+      this.addSimpleAttribute('height', height, attributeSet);
     }
     if (!attributeSet.has('width')) {
-      this.addSimpleAttribute('width', element.clientWidth.toString());
-      attributeSet.add('width');
+      var width = element.clientWidth.toString();
+      this.addSimpleAttribute('width', width, attributeSet);
     }
-    this.addSimpleAttribute('src', this.srcURL(element).href);
-    attributeSet.add(element.attributes.src.name.toLowerCase());
+    this.addSimpleAttribute('src', this.srcURL(element).href, attributeSet);
   }
 
   /**
-   * Add a name and value pair to the list of attributes in |this.html|.
+   * Add a name and value pair to the list of attributes in |this.html| and
+   * update |attributeSet|.
    *
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
+   * @param {Set<string>} attributeSet The Set containing all attributes already
+   *     added to the Element.
    */
-  addSimpleAttribute(name, value) {
+  addSimpleAttribute(name, value, attributeSet) {
     var quote = this.escapedQuote(this.windowDepth(window));
     this.html.push(`${name}=${quote}${value}${quote} `);
+    attributeSet.add(name.toLowerCase());
   }
 
   /**
