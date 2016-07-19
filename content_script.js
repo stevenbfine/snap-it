@@ -140,11 +140,9 @@ class HTMLSerializer {
    * @private
    */
   processSrcAttribute(element) {
-    switch(element.tagName.toLowerCase()) {
-      default:
-        this.processSrcHole(element);
-      case 'iframe':
-    }
+    if (element.tagName.toLowerCase() != 'iframe') {
+      this.processSrcHole(element);
+    } 
   }
 
   /**
