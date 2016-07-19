@@ -17,27 +17,6 @@ class HTMLSerializer {
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style']);
 
     /**
-     * @private {Set<string>} Contains the lower case tag names for elements
-     *     that have no closing tags.
-     * @const
-     */
-    this.NO_CLOSING_TAGS = new Set([
-      'area',
-      'base',
-      'br',
-      'col',
-      'command',
-      'embed',
-      'hr',
-      'img',
-      'input',
-      'link',
-      'meta',
-      'param',
-      'source'
-    ]);
-
-    /**
      * @public {Array<string>} This array represents the serialized html that
      *     makes up an element or document. 
      */
@@ -89,9 +68,8 @@ class HTMLSerializer {
         }
       }
 
-      if (!this.NO_CLOSING_TAGS.has(tagName.toLowerCase())) {
-        this.html.push(`</${tagName.toLowerCase()}>`);
-      }
+      this.html.push(`</${tagName.toLowerCase()}>`);
+
     }
   
 }
