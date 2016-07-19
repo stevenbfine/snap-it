@@ -118,7 +118,7 @@ class HTMLSerializer {
           default:
             var name = attribute.name;
             var value = attribute.value;
-            this.addSimpleAttribute(name, value);
+            this.processSimpleAttribute(name, value);
         }
       }
       // TODO(sfine): Ensure this is working by making sure that an iframe
@@ -142,7 +142,7 @@ class HTMLSerializer {
   processSrcAttribute(element) {
     switch(element.tagName.toLowerCase()) {
       default:
-        this.addSrcHole(element);
+        this.processSrcHole(element);
       case 'iframe':
     }
   }
@@ -154,7 +154,7 @@ class HTMLSerializer {
    *     attribute.
    * @private
    */
-  addSrcHole(element) {
+  processSrcHole(element) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
     this.srcHoles[this.html.length] = src.value;
@@ -168,7 +168,7 @@ class HTMLSerializer {
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
    */
-  addSimpleAttribute(name, value) {
+  processSimpleAttribute(name, value) {
     var quote = this.escapedQuote(this.windowDepth(window));
     this.html.push(`${name}=${quote}${value}${quote} `);
   }
