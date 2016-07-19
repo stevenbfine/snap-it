@@ -192,19 +192,17 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Get the a URL object for the value of the elements src attribute.
+   * Get a URL object for the value of the elements src attribute.
    *
-   * @param {Element} element The element for which to retrive the URL.
+   * @param {Element} element The element for which to retrieve the URL.
    * @return {URL} The URL object.
    */
-   // TODO(sfine): Ensure that this is robust.
   srcURL(element) {
     var url = element.attributes.src.value;
-    if (url.startsWith('//')) {
-      url = window.location.protocol + url;
-    } else if (url.startsWith('/')) {
-      url = window.location.protocol + '//' + window.location.host + url;
-    }
+    var img = document.createElement('img');
+    img.src = url;
+    url = img.src;
+    img.src = null;
     return new URL(url);
   }
 
