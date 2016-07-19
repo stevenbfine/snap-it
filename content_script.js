@@ -21,7 +21,7 @@ class HTMLSerializer {
      *     that have no closing tags.
      * @const
      */
-    this.NO_TRAILING_TAGS = new Set([
+    this.NO_CLOSING_TAGS = new Set([
       'area',
       'base',
       'br',
@@ -89,7 +89,7 @@ class HTMLSerializer {
         }
       }
 
-      if (!this.NO_TRAILING_TAGS.has(tagName.toLowerCase())) {
+      if (!this.NO_CLOSING_TAGS.has(tagName.toLowerCase())) {
         this.html.push(`</${tagName.toLowerCase()}>`);
       }
     }
@@ -116,8 +116,6 @@ class HTMLSerializer {
    * appropriate attribute names and values.
    *
    * @param {Element} element The Element to serialize.
-   * @param {number} depth The number of parents this element has in the current
-   *     frame.
    * @private
    */ 
   processAttributes(element) {
@@ -171,39 +169,29 @@ class HTMLSerializer {
    * @private
    */
   processSrcAttribute(element, attributeSet) {
-    switch(element.tagName.toLowerCase()) {
-      case 'track':
+    var tag = element.tagName.toLowerCase();
+    switch(tag) {
       case 'source':
-        var notImg = element.parent.tagName.toLowerCase() != 'img';
-        var crossOrigin = window.location.host != this.srcURL(element).host;
-        if (notImg || crossOrigin) {
-          this.simpleAttribute('src', this.srcURL(element).href);
-          attributeSet.add(element.attributes.src.name.toLowerCase());
+        if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
+          this.simpleSrc(element, attributeSet);
           break;
         }
       case 'input':
         var type = element.attributes.type;
-        if (!type || type.value.toLowerCase() != 'image' ) {
+        if (tag == 'input' && (!type || type.value.toLowerCase() != 'image')) {
           break;
         }
       case 'img':
         if (window.location.host == this.srcURL(element).host) {
           this.addSrcHole(element);
+          attributeSet.add('src');
           break;
         }
+      case 'track':
       case 'embed':
       case 'audio':
       case 'video':
-        if (!attributeSet.has('height')) {
-          this.simpleAttribute('height', element.clientHeight.toString());
-          attributeSet.add('height');
-        }
-        if (!attributeSet.has('width')) {
-          this.simpleAttribute('width', element.clientWidth.toString());
-          attributeSet.add('width');
-        }
-        this.simpleAttribute('src', this.srcURL(element).href);
-        attributeSet.add(element.attributes.src.name.toLowerCase());
+        this.simpleSrc(element, attributeSet);
       case 'iframe':
     }
   }
@@ -237,6 +225,24 @@ class HTMLSerializer {
     this.srcHoles[this.html.length] = src.value;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
+  }
+
+  /**
+   *
+   */
+  simpleSrc(element, attributeSet) {
+    // TODO(sfine): Ensure that this is working.  Perhaps don't always want to
+    //              be setting height and width.
+    if (!attributeSet.has('height')) {
+      this.simpleAttribute('height', element.clientHeight.toString());
+      attributeSet.add('height');
+    }
+    if (!attributeSet.has('width')) {
+      this.simpleAttribute('width', element.clientWidth.toString());
+      attributeSet.add('width');
+    }
+    this.simpleAttribute('src', this.srcURL(element).href);
+    attributeSet.add(element.attributes.src.name.toLowerCase());
   }
 
   /**
