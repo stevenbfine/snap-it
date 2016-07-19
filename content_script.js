@@ -14,7 +14,6 @@ class HTMLSerializer {
      *     ignored while serializing a document.
      * @const
      */
-     // TODO(sfine): Process links.
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
@@ -27,13 +26,7 @@ class HTMLSerializer {
      * @public {Object<number, string>} The keys represent an index in
      *     |this.html|. The value is a url at which the resource that belongs at
      *     that index can be retrieved. The resource will eventually be
-     *     converted to a data url. Because any given document being serialized
-     *     could be an iframe which is nested 1 or more levels into the root
-     *     document, the exact quotes that will be used to surround the data url
-     *     must be determined when the frames are being put together, so that
-     *     they can be properly escaped. As a result, |this.html| has a filler
-     *     index both immediately before, and immediately after where the data
-     *     url will be placed (3 filler indices in total).
+     *     converted to a data url.
      */
     this.srcHoles = {};
 
@@ -64,46 +57,9 @@ class HTMLSerializer {
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
     } else {
-      this.html.push(new Array(depth+1).join('  '));
       this.html.push(`<${tagName.toLowerCase()} `);
-
-      var win = element.ownerDocument.defaultView;
-      var style = win.getComputedStyle(element, null).cssText;
-      var windowDepth = this.windowDepth(window);
-      style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
-      var quotes = this.escapedQuote(windowDepth);
-      this.html.push(`style=${quotes}${style}${quotes} `);
-
-      var attributes = element.attributes;
-      if (attributes) {
-        for (var i = 0, attribute; attribute = attributes[i]; i++) {
-          switch (attribute.name.toLowerCase())  {
-            case 'src':
-              if (tagName.toLowerCase() != 'iframe') {
-                this.html.push(`${attribute.name}=`);
-                this.srcHoles[this.html.length] = attribute.value;
-                this.html.push(''); // Entry where data url will go.
-                this.html.push(' '); // Add a space before the next attribute.
-              }
-            case 'style':
-              break;
-            default:
-              var name = attribute.name;
-              var value = attribute.value;
-              this.html.push(`${name}=${quotes}${value}${quotes} `);
-          }
-        }
-        // TODO(sfine): Ensure this is working by making sure that an iframe
-        //              will always have attributes.
-        if (tagName.toLowerCase() == 'iframe') {
-          this.html.push('srcdoc=');
-          var name = this.iframeFullyQualifiedName(element.contentWindow);
-          this.frameHoles[this.html.length] = name;
-          this.html.push(''); // Entry where the iframe contents will go.
-        }
-      }
-
-      this.html.push('>\n');
+      this.processAttributes(element);
+      this.html.push('>');
 
       var children = element.childNodes;
       if (children) {
@@ -112,8 +68,7 @@ class HTMLSerializer {
         }
       }
 
-      this.html.push(new Array(depth+1).join('  '));
-      this.html.push(`</${tagName.toLowerCase()}>\n`);
+      this.html.push(`</${tagName.toLowerCase()}>`);
     }
   }
 
@@ -131,6 +86,89 @@ class HTMLSerializer {
         this.processTree(node, 0);
       }
     }
+  }
+
+  /**
+   * Takes an html element, and populates this object's fields with the
+   * appropriate attribute names and values.
+   *
+   * @param {Element} element The Element to serialize.
+   * @private
+   */ 
+  processAttributes(element) {
+    var win = element.ownerDocument.defaultView;
+    var style = win.getComputedStyle(element, null).cssText;
+
+    // TODO(sfine): Ensure that getComputedStyle returns absolute urls.
+    //              https://www.w3.org/TR/css3-values/ 3.4.1
+
+    var windowDepth = this.windowDepth(window);
+    style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
+    var quote = this.escapedQuote(windowDepth);
+    this.html.push(`style=${quote}${style}${quote} `);
+
+    var attributes = element.attributes;
+    if (attributes) {
+      for (var i = 0, attribute; attribute = attributes[i]; i++) {
+        switch (attribute.name.toLowerCase())  {
+          case 'src':
+            this.processSrcAttribute(element);
+          case 'style':
+            break;
+          default:
+            var name = attribute.name;
+            var value = attribute.value;
+            this.processSimpleAttribute(name, value);
+        }
+      }
+      // TODO(sfine): Ensure this is working by making sure that an iframe
+      //              will always have attributes.
+      if (element.tagName.toLowerCase() == 'iframe') {
+        this.html.push('srcdoc=');
+        var name = this.iframeFullyQualifiedName(element.contentWindow);
+        this.frameHoles[this.html.length] = name;
+        this.html.push(''); // Entry where the iframe contents will go.
+      }
+    }
+  }
+
+  /**
+   * Process the src attribute of a given element.
+   *
+   * @param {Element} element The element being processed, which has the src
+   *     attribute.
+   * @private
+   */
+  processSrcAttribute(element) {
+    if (element.tagName.toLowerCase() != 'iframe') {
+      this.processSrcHole(element);
+    } 
+  }
+
+  /**
+   * Add an entry to |this.srcHoles| so it can be processed asynchronously.
+   *
+   * @param {Element} element The element being processed, which has the src
+   *     attribute.
+   * @private
+   */
+  processSrcHole(element) {
+    var src = element.attributes.src;
+    this.html.push(`${src.name}=`);
+    this.srcHoles[this.html.length] = src.value;
+    this.html.push(''); // Entry where data url will go.
+    this.html.push(' '); // Add a space before the next attribute.
+  }
+
+  /**
+   * Add a name and value pair to the list of attributes in |this.html|.
+   *
+   * @param {string} name The name of the attribute.
+   * @param {string} value The value of the attribute.
+   */
+  processSimpleAttribute(name, value) {
+    var quote = this.escapedQuote(this.windowDepth(window));
+    this.html.push(`${name}=${quote}${value}${quote} `);
   }
 
   /**
@@ -219,8 +257,8 @@ function fillSrcHoles(htmlSerializer, callback) {
       var reader = new FileReader();
       reader.onload = function(e) {
         var windowDepth = htmlSerializer.windowDepth(window);
-        var quotes = htmlSerializer.escapedQuote(windowDepth);
-        htmlSerializer.html[index] = quotes + e.target.result + quotes;
+        var quote = htmlSerializer.escapedQuote(windowDepth);
+        htmlSerializer.html[index] = quote + e.target.result + quote;
         fillSrcHoles(htmlSerializer, callback);
       }
       reader.readAsDataURL(blob);

@@ -76,7 +76,6 @@ QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
   childFrameBody.appendChild(grandChildFrame1);
   childFrameBody.appendChild(grandChildFrame2);
   assert.equal(serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow), '0.0.0');
-  assert.equal(serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow), '0.0.0');
   assert.equal(serializer.iframeFullyQualifiedName(grandChildFrame2.contentWindow), '0.0.1');
 });
 
