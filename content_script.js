@@ -148,23 +148,6 @@ class HTMLSerializer {
   }
 
   /**
-   * Get the a URL object for the value of the elements src attribute.
-   *
-   * @param {Element} element The element for which to retrive the URL.
-   * @return {URL} The URL object.
-   */
-   // TODO(sfine): Ensure that this is robust.
-  srcURL(element) {
-    var url = element.attributes.src.value;
-    if (url.startsWith('//')) {
-      url = window.location.protocol + url;
-    } else if (url.startsWith('/')) {
-      url = window.location.protocol + '//' + window.location.host + url;
-    }
-    return new URL(url);
-  }
-
-  /**
    * Add an entry to |this.srcHoles| so it can be processed asynchronously.
    *
    * @param {Element} element The element being processed, which has the src
@@ -174,7 +157,7 @@ class HTMLSerializer {
   addSrcHole(element) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
-    this.srcHoles[this.html.length] = this.srcURL(element).href;
+    this.srcHoles[this.html.length] = src.value;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
   }
