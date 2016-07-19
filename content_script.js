@@ -197,6 +197,7 @@ class HTMLSerializer {
    * @param {Element} element The element for which to retrive the URL.
    * @return {URL} The URL object.
    */
+   // TODO(sfine): Ensure that this is robust.
   srcURL(element) {
     var url = element.attributes.src.value;
     if (url.startsWith('//')) {
