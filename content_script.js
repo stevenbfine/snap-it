@@ -14,7 +14,7 @@ class HTMLSerializer {
      *     ignored while serializing a document.
      * @const
      */
-    this.FILTERED_TAGS = new Set(['script', 'noscript', 'style']);
+    this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
      * @public {Array<string>} This array represents the serialized html that
