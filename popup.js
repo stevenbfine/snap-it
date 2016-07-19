@@ -67,6 +67,8 @@ function outputHTMLString(messages) {
  * @param {number} i The index of messages to use.
  * @param {number} depth How many parent iframes messages[i] has.
  */
+// TODO(sfine): Generate correct quotation marks in the content_script.js and
+//              remove getQuotes function from popup.js.
 function fillRemainingHoles(messages, i, depth) {
   var html = messages[i].html;
   var quotes = getQuotes(depth);
