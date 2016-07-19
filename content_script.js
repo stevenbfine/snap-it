@@ -199,10 +199,9 @@ var HTMLSerializer = class {
    */
   srcURL(element) {
     var url = element.attributes.src.value;
-    var img = document.createElement('img');
-    img.src = url;
-    url = img.src;
-    img.src = null;
+    var a = document.createElement('a');
+    a.href = url;
+    url = a.href; // Retrieve fully qualified URL.
     return new URL(url);
   }
 
