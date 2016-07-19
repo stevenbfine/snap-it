@@ -131,17 +131,20 @@ var HTMLSerializer = class {
     this.html.push(`style=${quote}${style}${quote} `);
 
     var attributes = element.attributes;
+    var attributeSet = new Set();
     if (attributes) {
       for (var i = 0, attribute; attribute = attributes[i]; i++) {
         switch (attribute.name.toLowerCase())  {
           case 'src':
-            this.processSrcAttribute(element);
+            this.processSrcAttribute(element, attributeSet);
           case 'style':
             break;
           default:
-            var name = attribute.name;
-            var value = attribute.value;
-            this.processSimpleAttribute(name, value);
+            if (!attributeSet.has(attribute.name.toLowerCase())) {
+              var name = attribute.name;
+              var value = attribute.value;
+              this.processSimpleAttribute(name, value, attributeSet);
+            }
         }
       }
       // TODO(sfine): Ensure this is working by making sure that an iframe
@@ -160,38 +163,105 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
+   * @param {Set<string>} attributeSet The Set containing all attributes already added
+   *     to the Element.
    * @private
    */
-  processSrcAttribute(element) {
-    if (element.tagName.toLowerCase() != 'iframe') {
-      this.processSrcHole(element);
-    } 
+  processSrcAttribute(element, attributeSet) {
+    var tag = element.tagName.toLowerCase();
+    switch(tag) {
+      case 'source':
+        if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
+          this.addSimpleSrc(element, attributeSet);
+          break;
+        }
+      case 'input':
+        var type = element.attributes.type;
+        if (tag == 'input' && (!type || type.value.toLowerCase() != 'image')) {
+          break;
+        }
+      case 'img':
+        if (window.location.host == this.srcURL(element).host) {
+          this.addSrcHole(element, attributeSet);
+          break;
+        }
+      default:
+        this.addSimpleSrc(element, attributeSet);
+      case 'iframe':
+    }
   }
 
   /**
-   * Add an entry to |this.srcHoles| so it can be processed asynchronously.
+   * Get the a URL object for the value of the elements src attribute.
+   *
+   * @param {Element} element The element for which to retrive the URL.
+   * @return {URL} The URL object.
+   */
+   // TODO(sfine): Ensure that this is robust.
+  srcURL(element) {
+    var url = element.attributes.src.value;
+    if (url.startsWith('//')) {
+      url = window.location.protocol + url;
+    } else if (url.startsWith('/')) {
+      url = window.location.protocol + '//' + window.location.host + url;
+    }
+    return new URL(url);
+  }
+
+  /**
+   * Add an entry to |this.srcHoles| so it can be processed asynchronously, and
+   * mark that a src attribute has been added in |attributeSet|.
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
+   * @param {Set<string>} attributeSet The Set containing all attributes already added
+   *     to the Element.
    * @private
    */
-  processSrcHole(element) {
+  processSrcHole(element, attributeSet) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
-    this.srcHoles[this.html.length] = src.value;
+    this.srcHoles[this.html.length] = this.srcURL(element).href;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
+    attributeSet.add('src');
   }
 
   /**
-   * Add a name and value pair to the list of attributes in |this.html|.
+   * Add the src attribute to |this.html| and update |attributeSet|.  If the
+   * height and width attributes are not set, they will be set.
+   *
+   * @param {Element} element The Element with the src attribute.
+   * @param {Set<string>} attributeSet The Set containing all attributes already
+   *     added to the Element.
+   */
+  addSimpleSrc(element, attributeSet) {
+    // TODO(sfine): Ensure that this is working.  Perhaps don't always want to
+    //              be setting height and width.
+    if (!attributeSet.has('height')) {
+      var height = element.clientHeight.toString();
+      this.addSimpleAttribute('height', height, attributeSet);
+    }
+    if (!attributeSet.has('width')) {
+      var width = element.clientWidth.toString();
+      this.addSimpleAttribute('width', width, attributeSet);
+    }
+    this.addSimpleAttribute('src', this.srcURL(element).href, attributeSet);
+  }
+
+  /**
+   * Add a name and value pair to the list of attributes in |this.html| and
+   * update |attributeSet|.
    *
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
+   * @param {Set<string>} attributeSet The Set containing all attributes already
+   *     added to the Element.
    */
-  processSimpleAttribute(name, value) {
+  processSimpleAttribute(name, value, attributeSet) {
     var quote = this.escapedQuote(this.windowDepth(window));
     this.html.push(`${name}=${quote}${value}${quote} `);
+    attributeSet.add(name.toLowerCase());
   }
 
   /**
@@ -271,9 +341,6 @@ function fillSrcHoles(htmlSerializer, callback) {
     var index = Object.keys(htmlSerializer.srcHoles)[0];
     var src = htmlSerializer.srcHoles[index];
     delete htmlSerializer.srcHoles[index];
-    // TODO(sfine): Only create a data url if the src url is from the same
-    //              origin. Additionally, process imgs, videos, etc..
-    //              differently.
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
