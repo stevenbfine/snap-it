@@ -70,8 +70,8 @@ class HTMLSerializer {
 
       this.html.push(`</${tagName.toLowerCase()}>`);
     }
-  
 }
+
   /**
    * Takes an html document, and populates this objects fields such that it can
    * eventually be converted into an html file.
