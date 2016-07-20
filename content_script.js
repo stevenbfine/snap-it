@@ -38,21 +38,6 @@ var HTMLSerializer = class {
     ]);
 
     /**
-     * @private {Set<string>} Contains the tag names of elements that can have
-     *     height and width attributes.
-     * @const
-     */
-    this.TAGS_WITH_SIZE_ATTRIBUTES = new Set([
-      'CANVAS',
-      'EMBED',
-      'IFRAME',
-      'IMG',
-      'INPUT',
-      'OBJECT',
-      'VIDEO'
-      ]);
-
-    /**
      * @public {Array<string>} This array represents the serialized html that
      *     makes up an element or document. 
      */
@@ -166,14 +151,6 @@ var HTMLSerializer = class {
         var name = this.iframeFullyQualifiedName(element.contentWindow);
         this.frameHoles[this.html.length] = name;
         this.html.push(''); // Entry where the iframe contents will go.
-      }
-      if (this.TAGS_WITH_SIZE_ATTRIBUTES.has(element.tagName)) {
-        if (!attributes.getNamedItem('height')) {
-
-        }
-        if (!attributes.getNamedItem('width')) {
-
-        }
       }
     }
   }
