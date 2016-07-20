@@ -164,7 +164,7 @@ var HTMLSerializer = class {
    * @param {Element} element The element being processed, which has the src
    *     attribute.
    * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to the Element.
+   *     added to |this.html| for the Element.
    * @private
    */
   processSrcAttribute(element, attributeSet) {
@@ -213,7 +213,7 @@ var HTMLSerializer = class {
    * @param {Element} element The element being processed, which has the src
    *     attribute.
    * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to the Element.
+   *     added to |this.html| for the Element.
    * @private
    */
   processSrcHole(element, attributeSet) {
@@ -231,7 +231,7 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The Element with the src attribute.
    * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to the Element.
+   *     added to |this.html| for the Element.
    */
   processSimpleSrc(element, attributeSet) {
     // TODO(sfine): Ensure that this is working.  Perhaps don't always want to
@@ -255,7 +255,7 @@ var HTMLSerializer = class {
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
    * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to the Element.
+   *     added to |this.html| for the Element.
    */
   processSimpleAttribute(name, value, attributeSet) {
     var quote = this.escapedQuote(this.windowDepth(window));
