@@ -163,8 +163,8 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
-   * @param {Set<string>} attributeSet The Set containing all attributes already added
-   *     to the Element.
+   * @param {Set<string>} attributeSet The Set containing all attributes already
+   *     added to the Element.
    * @private
    */
   processSrcAttribute(element, attributeSet) {
@@ -212,8 +212,8 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
-   * @param {Set<string>} attributeSet The Set containing all attributes already added
-   *     to the Element.
+   * @param {Set<string>} attributeSet The Set containing all attributes already
+   *     added to the Element.
    * @private
    */
   processSrcHole(element, attributeSet) {
