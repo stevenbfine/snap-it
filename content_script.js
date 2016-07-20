@@ -131,19 +131,19 @@ var HTMLSerializer = class {
     this.html.push(`style=${quote}${style}${quote} `);
 
     var attributes = element.attributes;
-    var attributeSet = new Set();
+    var processedAttributes = new Set();
     if (attributes) {
       for (var i = 0, attribute; attribute = attributes[i]; i++) {
         switch (attribute.name.toLowerCase())  {
           case 'src':
-            this.processSrcAttribute(element, attributeSet);
+            this.processSrcAttribute(element, processedAttributes);
           case 'style':
             break;
           default:
-            if (!attributeSet.has(attribute.name.toLowerCase())) {
+            if (!processedAttributes.has(attribute.name.toLowerCase())) {
               var name = attribute.name;
               var value = attribute.value;
-              this.processSimpleAttribute(name, value, attributeSet);
+              this.processSimpleAttribute(name, value, processedAttributes);
             }
         }
       }
@@ -163,18 +163,18 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
-   * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to |this.html| for the Element.
+   * @param {Set<string>} processedAttributes The Set containing all attributes
+   *     already added to |this.html| for the Element.
    * @private
    */
-  processSrcAttribute(element, attributeSet) {
+  processSrcAttribute(element, processedAttributes) {
     var tag = element.tagName.toLowerCase();
     switch(tag) {
       case 'iframe':
         break; // Do nothing.
       case 'source':
         if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
-          this.processSimpleSrc(element, attributeSet);
+          this.processSimpleSrc(element, processedAttributes);
           break;
         } // else process as img.
       case 'input':
@@ -184,11 +184,11 @@ var HTMLSerializer = class {
         } // else process as img.
       case 'img':
         if (window.location.host == this.fullyQualifiedURL(element).host) {
-          this.processSrcHole(element, attributeSet);
+          this.processSrcHole(element, processedAttributes);
           break;
         }
       default:
-        this.processSimpleSrc(element, attributeSet);
+        this.processSimpleSrc(element, processedAttributes);
     }
   }
 
@@ -208,59 +208,59 @@ var HTMLSerializer = class {
 
   /**
    * Add an entry to |this.srcHoles| so it can be processed asynchronously, and
-   * mark that a src attribute has been added in |attributeSet|.
+   * mark that a src attribute has been added in |processedAttributes|.
    *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
-   * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to |this.html| for the Element.
+   * @param {Set<string>} processedAttributes The Set containing all attributes
+   *     already added to |this.html| for the Element.
    * @private
    */
-  processSrcHole(element, attributeSet) {
+  processSrcHole(element, processedAttributes) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
     this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
-    attributeSet.add('src');
+    processedAttributes.add('src');
   }
 
   /**
-   * Add the src attribute to |this.html| and update |attributeSet|.  If the
-   * height and width attributes are not set, they will be set.
+   * Add the src attribute to |this.html| and update |processedAttributes|.  If
+   * the height and width attributes are not set, they will be set.
    *
    * @param {Element} element The Element with the src attribute.
-   * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to |this.html| for the Element.
+   * @param {Set<string>} processedAttributes The Set containing all attributes
+   *     already added to |this.html| for the Element.
    */
-  processSimpleSrc(element, attributeSet) {
+  processSimpleSrc(element, processedAttributes) {
     // TODO(sfine): Ensure that this is working.  Perhaps don't always want to
     //              be setting height and width.
-    if (!attributeSet.has('height')) {
+    if (!processedAttributes.has('height')) {
       var height = element.clientHeight.toString();
-      this.processSimpleAttribute('height', height, attributeSet);
+      this.processSimpleAttribute('height', height, processedAttributes);
     }
-    if (!attributeSet.has('width')) {
+    if (!processedAttributes.has('width')) {
       var width = element.clientWidth.toString();
-      this.processSimpleAttribute('width', width, attributeSet);
+      this.processSimpleAttribute('width', width, processedAttributes);
     }
     var url = this.fullyQualifiedURL(element).href;
-    this.processSimpleAttribute('src', url, attributeSet);
+    this.processSimpleAttribute('src', url, processedAttributes);
   }
 
   /**
    * Add a name and value pair to the list of attributes in |this.html| and
-   * update |attributeSet|.
+   * update |processedAttributes|.
    *
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
-   * @param {Set<string>} attributeSet The Set containing all attributes already
-   *     added to |this.html| for the Element.
+   * @param {Set<string>} processedAttributes The Set containing all attributes
+   *     already added to |this.html| for the Element.
    */
-  processSimpleAttribute(name, value, attributeSet) {
+  processSimpleAttribute(name, value, processedAttributes) {
     var quote = this.escapedQuote(this.windowDepth(window));
     this.html.push(`${name}=${quote}${value}${quote} `);
-    attributeSet.add(name.toLowerCase());
+    processedAttributes.add(name.toLowerCase());
   }
 
   /**
