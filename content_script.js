@@ -11,7 +11,7 @@ var HTMLSerializer = class {
      *     ignored while serializing a document.
      * @const
      */
-    this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
+    this.FILTERED_TAGS = new Set(['SCRIPT', 'NOSCRIPT', 'STYLE', 'LINK']);
 
     /**
      * @private {Set<string>} Contains the tag names for elements
@@ -73,7 +73,7 @@ var HTMLSerializer = class {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
       // Ignore elements that don't have tags and are not text.
-    } else if (tagName && this.FILTERED_TAGS.has(tagName.toLowerCase())) {
+    } else if (tagName && this.FILTERED_TAGS.has(tagName)) {
       // Filter out elements that are in filteredTags.
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
@@ -149,7 +149,7 @@ var HTMLSerializer = class {
       }
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
-      if (element.tagName.toLowerCase() == 'iframe') {
+      if (element.tagName == 'IFRAME') {
         this.html.push('srcdoc=');
         var name = this.iframeFullyQualifiedName(element.contentWindow);
         this.frameHoles[this.html.length] = name;
@@ -168,21 +168,21 @@ var HTMLSerializer = class {
    * @private
    */
   processSrcAttribute(element, processedAttributes) {
-    var tag = element.tagName.toLowerCase();
+    var tag = element.tagName;
     switch (tag) {
-      case 'iframe':
+      case 'IFRAME':
         break; // Do nothing.
-      case 'source':
-        if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
+      case 'SOURCE':
+        if (!element.parent || element.parent.tagName != 'IMG') {
           this.processSimpleSrc(element, processedAttributes);
           break;
         } // else process as img.
-      case 'input':
+      case 'INPUT':
         var type = element.attributes.type;
-        if (tag == 'input' && (!type || type.value.toLowerCase() != 'image')) {
+        if (tag == 'INPUT' && (!type || type.value.toLowerCase() != 'image')) {
           break;
         } // else process as img.
-      case 'img':
+      case 'IMG':
         if (window.location.host == this.fullyQualifiedURL(element).host) {
           this.processSrcHole(element, processedAttributes);
           break;
