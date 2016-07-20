@@ -169,7 +169,7 @@ var HTMLSerializer = class {
    */
   processSrcAttribute(element, processedAttributes) {
     var tag = element.tagName.toLowerCase();
-    switch(tag) {
+    switch (tag) {
       case 'iframe':
         break; // Do nothing.
       case 'source':
