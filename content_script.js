@@ -193,7 +193,7 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Get a URL object for the value of the elements src attribute.
+   * Get a URL object for the value of the |element|'s src attribute.
    *
    * @param {Element} element The element for which to retrieve the URL.
    * @return {URL} The URL object.
