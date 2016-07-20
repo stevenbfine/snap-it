@@ -183,7 +183,7 @@ var HTMLSerializer = class {
           break;
         }
       case 'img':
-        if (window.location.host == this.srcURL(element).host) {
+        if (window.location.host == this.fullyQualifiedURL(element).host) {
           this.processSrcHole(element, attributeSet);
           break;
         }
@@ -198,7 +198,7 @@ var HTMLSerializer = class {
    * @param {Element} element The element for which to retrieve the URL.
    * @return {URL} The URL object.
    */
-  srcURL(element) {
+  fullyQualifiedURL(element) {
     var url = element.attributes.src.value;
     var a = document.createElement('a');
     a.href = url;
@@ -219,7 +219,7 @@ var HTMLSerializer = class {
   processSrcHole(element, attributeSet) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
-    this.srcHoles[this.html.length] = this.srcURL(element).href;
+    this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
     attributeSet.add('src');
@@ -244,7 +244,8 @@ var HTMLSerializer = class {
       var width = element.clientWidth.toString();
       this.processSimpleAttribute('width', width, attributeSet);
     }
-    this.processSimpleAttribute('src', this.srcURL(element).href, attributeSet);
+    var url = this.fullyQualifiedURL(element).href;
+    this.processSimpleAttribute('src', url, attributeSet);
   }
 
   /**
