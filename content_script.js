@@ -172,7 +172,7 @@ var HTMLSerializer = class {
     switch(tag) {
       case 'source':
         if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
-          this.addSimpleSrc(element, attributeSet);
+          this.processSimpleSrc(element, attributeSet);
           break;
         }
       case 'input':
@@ -182,11 +182,11 @@ var HTMLSerializer = class {
         }
       case 'img':
         if (window.location.host == this.srcURL(element).host) {
-          this.addSrcHole(element, attributeSet);
+          this.processSrcHole(element, attributeSet);
           break;
         }
       default:
-        this.addSimpleSrc(element, attributeSet);
+        this.processSimpleSrc(element, attributeSet);
       case 'iframe':
     }
   }
@@ -232,18 +232,18 @@ var HTMLSerializer = class {
    * @param {Set<string>} attributeSet The Set containing all attributes already
    *     added to the Element.
    */
-  addSimpleSrc(element, attributeSet) {
+  processSimpleSrc(element, attributeSet) {
     // TODO(sfine): Ensure that this is working.  Perhaps don't always want to
     //              be setting height and width.
     if (!attributeSet.has('height')) {
       var height = element.clientHeight.toString();
-      this.addSimpleAttribute('height', height, attributeSet);
+      this.processSimpleAttribute('height', height, attributeSet);
     }
     if (!attributeSet.has('width')) {
       var width = element.clientWidth.toString();
-      this.addSimpleAttribute('width', width, attributeSet);
+      this.processSimpleAttribute('width', width, attributeSet);
     }
-    this.addSimpleAttribute('src', this.srcURL(element).href, attributeSet);
+    this.processSimpleAttribute('src', this.srcURL(element).href, attributeSet);
   }
 
   /**
