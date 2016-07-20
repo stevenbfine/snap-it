@@ -176,12 +176,12 @@ var HTMLSerializer = class {
         if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
           this.processSimpleSrc(element, attributeSet);
           break;
-        } // else treat as img.
+        } // else process as img.
       case 'input':
         var type = element.attributes.type;
         if (tag == 'input' && (!type || type.value.toLowerCase() != 'image')) {
           break;
-        } // else treat as img.
+        } // else process as img.
       case 'img':
         if (window.location.host == this.fullyQualifiedURL(element).host) {
           this.processSrcHole(element, attributeSet);
