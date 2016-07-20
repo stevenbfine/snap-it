@@ -170,6 +170,8 @@ var HTMLSerializer = class {
   processSrcAttribute(element, attributeSet) {
     var tag = element.tagName.toLowerCase();
     switch(tag) {
+      case 'iframe':
+        break;
       case 'source':
         if (!element.parent || element.parent.tagName.toLowerCase() != 'img') {
           this.processSimpleSrc(element, attributeSet);
@@ -187,7 +189,6 @@ var HTMLSerializer = class {
         }
       default:
         this.processSimpleSrc(element, attributeSet);
-      case 'iframe':
     }
   }
 
