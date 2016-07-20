@@ -324,8 +324,6 @@ function fillSrcHoles(htmlSerializer, callback) {
   }
 }
 
-// TODO(sfine): Perhaps handle images seperately. At least store height and
-//              width.
 /**
  * Send the neccessary HTMLSerializer properties back to the extension.
  *
