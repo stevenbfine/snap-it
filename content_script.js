@@ -156,36 +156,41 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Process the src attribute of a given element
-.   *
+   * Process the src attribute of a given element.
+   *
    * @param {Element} element The element being processed, which has the src
    *     attribute.
    * @private
    */
   processSrcAttribute(element) {
-    var tag = element.tagName;
-    switch (tag) {
+    var url = this.fullyQualifiedURL(element);
+    var sameOrigin = window.location.host == url.href;
+    switch (element.tagName) {
       case 'IFRAME':
         break; // Do nothing.
       case 'SOURCE':
-        if (!element.parent || element.parent.tagName != 'IMG') {
-          var url = this.fullyQualifiedURL(element).href;
-          this.processSimpleAttribute('src', url);
-          break;
-        } // else process as img.
+        var parent = element.parent;
+        if (parent && parent.tagName == 'PICTURE' && sameOrigin) {
+          this.processSrcHole(element);
+        } else {
+          this.processSimpleAttribute('src', url.href);
+        }
+        break;
       case 'INPUT':
         var type = element.attributes.type;
-        if (tag == 'INPUT' && (!type || type.value.toLowerCase() != 'image')) {
-          break;
-        } // else process as img.
-      case 'IMG':
-        if (window.location.host == this.fullyQualifiedURL(element).host) {
+        if (type && type.value.toLowerCase() == 'image') {
           this.processSrcHole(element);
-          break;
         }
+        break;
+      case 'IMG':
+        if (sameOrigin) {
+          this.processSrcHole(element);
+        } else {
+          this.processSimpleAttribute('src', url.href);
+        }
+        break;
       default:
-        var url = this.fullyQualifiedURL(element).href;
-        this.processSimpleAttribute('src', url);
+        this.processSimpleAttribute('src', url.href);
     }
   }
 
