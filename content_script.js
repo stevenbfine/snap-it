@@ -141,7 +141,7 @@ var HTMLSerializer = class {
           default:
             var name = attribute.name;
             var value = attribute.value;
-            this.processSimpleAttribute(name, value);
+            this.processSimpleAttribute(win, name, value);
         }
       }
       // TODO(sfine): Ensure this is working by making sure that an iframe
@@ -163,6 +163,7 @@ var HTMLSerializer = class {
    * @private
    */
   processSrcAttribute(element) {
+    var win = element.ownerDocument.defaultView;
     var url = this.fullyQualifiedURL(element);
     var sameOrigin = window.location.host == url.href;
     switch (element.tagName) {
@@ -173,7 +174,7 @@ var HTMLSerializer = class {
         if (parent && parent.tagName == 'PICTURE' && sameOrigin) {
           this.processSrcHole(element);
         } else {
-          this.processSimpleAttribute('src', url.href);
+          this.processSimpleAttribute(win, 'src', url.href);
         }
         break;
       case 'INPUT':
@@ -186,11 +187,11 @@ var HTMLSerializer = class {
         if (sameOrigin) {
           this.processSrcHole(element);
         } else {
-          this.processSimpleAttribute('src', url.href);
+          this.processSimpleAttribute(win, 'src', url.href);
         }
         break;
       default:
-        this.processSimpleAttribute('src', url.href);
+        this.processSimpleAttribute(win, 'src', url.href);
     }
   }
 
@@ -226,11 +227,12 @@ var HTMLSerializer = class {
   /**
    * Add a name and value pair to the list of attributes in |this.html|.
    *
+   * @param {Window} win The window of the Element that is being processed.
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
    */
-  processSimpleAttribute(name, value) {
-    var quote = this.escapedQuote(this.windowDepth(window));
+  processSimpleAttribute(win, name, value) {
+    var quote = this.escapedQuote(this.windowDepth(win));
     this.html.push(`${name}=${quote}${value}${quote} `);
   }
 

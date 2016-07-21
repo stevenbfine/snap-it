@@ -61,8 +61,14 @@ QUnit.test('iframeFullyQualifiedName: single layer', function(assert) {
   fixture.appendChild(childFrame1);
   fixture.appendChild(childFrame2);
   assert.equal(serializer.iframeFullyQualifiedName(window), '0');
-  assert.equal(serializer.iframeFullyQualifiedName(childFrame1.contentWindow), '0.0');
-  assert.equal(serializer.iframeFullyQualifiedName(childFrame2.contentWindow), '0.1');
+  assert.equal(
+    serializer.iframeFullyQualifiedName(childFrame1.contentWindow),
+    '0.0'
+  );
+  assert.equal(
+    serializer.iframeFullyQualifiedName(childFrame2.contentWindow),
+    '0.1'
+  );
 });
 
 QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
@@ -73,11 +79,74 @@ QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
   var grandChildFrame2 = document.createElement('iframe');
   fixture.appendChild(childFrame);
   var childFrameBody = childFrame.contentDocument.body;
+  console.log(childFrameBody);
   childFrameBody.appendChild(grandChildFrame1);
   childFrameBody.appendChild(grandChildFrame2);
-  assert.equal(serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow), '0.0.0');
-  assert.equal(serializer.iframeFullyQualifiedName(grandChildFrame2.contentWindow), '0.0.1');
+  assert.equal(
+    serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow),
+    '0.0.0'
+  );
+  assert.equal(
+    serializer.iframeFullyQualifiedName(grandChildFrame2.contentWindow),
+    '0.0.1'
+  );
 });
+
+QUnit.test('processSimpleAttribute: top window', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var win = fixture.ownerDocument.defaultView;
+  serializer.processSimpleAttribute(win, 'height', '5');
+  assert.equal(serializer.html[0], 'height="5" ');
+});
+
+QUnit.test('processSimpleAttribute: nested window', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var childFrame = document.createElement('iframe');
+  var grandChildFrame = document.createElement('iframe');
+  fixture.appendChild(childFrame);
+  var childFrameBody = childFrame.contentDocument.body;
+  childFrameBody.appendChild(grandChildFrame);
+  var childFrameWindow = childFrame.contentDocument.defaultView;
+  var grandChildFrameWindow = grandChildFrame.contentDocument.defaultView;
+  serializer.processSimpleAttribute(childFrameWindow, 'height', '5');
+  serializer.processSimpleAttribute(grandChildFrameWindow, 'width', '2');
+  assert.equal(serializer.html[0], 'height=&quot;5&quot; ');
+  assert.equal(serializer.html[1], 'width=&amp;quot;2&amp;quot; ');
+});
+
+
+// TODO(sfine): How to test fullyQualifiedURL, if the resource doesn't exist?
+// QUnit.test('fullyQualifiedURL', function(assert) {
+// });
+
+// QUnit.test('processSrcHole: top window', function(assert) {
+//   var serializer = new HTMLSerializer();
+//   var img = document.createElement('img');
+//   img.setAttribute('src', 'url');
+//   serializer.processSrcHole(img);
+//   assert.equal()
+// });
+
+QUnit.test('processSrcAttribute: iframe', function(assert) {
+  var serializer = new HTMLSerializer();
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('src', 'url');
+  serializer.processSrcAttribute(iframe);
+  assert.equal(serializer.html.length, 0);
+  assert.equal(Object.keys(serializer.srcHoles).length, 0);
+  assert.equal(Object.keys(serializer.frameHoles).length, 0);
+});
+
+// TODO(sfine): Test the src attribute, if it will turn it into a full url?
+// QUnit.test('processSrcAttribute: audio', function(assert) {
+//   var serializer = new HTMLSerializer();
+//   var audio = document.createElement('audio');
+//   audio.setAttribute('src', 'url');
+//   serializer.processSrcAttribute(audio);
+//   assert.equal(serializer.html[0], 'src="url" ');
+// });
 
 QUnit.test('processTree: single node', function(assert) {
   var fixture = document.getElementById('qunit-fixture');
