@@ -18,7 +18,8 @@ class HTMLSerializer {
 
     /**
      * @private {Set<string>} Contains the tag names for elements
-     *     that have no closing tags.
+     *     that have no closing tags.  List of tags taken from:
+     *     https://html.spec.whatwg.org/multipage/syntax.html#void-elements.
      * @const
      */
     this.NO_CLOSING_TAGS = new Set([
