@@ -26,15 +26,17 @@ class HTMLSerializer {
       'BASE',
       'BR',
       'COL',
-      'COMMAND',
       'EMBED',
       'HR',
       'IMG',
       'INPUT',
+      'KEYGEN',
       'LINK',
       'META',
       'PARAM',
-      'SOURCE'
+      'SOURCE',
+      'TRACK',
+      'WBR'
     ]);
 
     /**
