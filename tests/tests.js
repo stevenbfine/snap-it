@@ -116,37 +116,50 @@ QUnit.test('processSimpleAttribute: nested window', function(assert) {
   assert.equal(serializer.html[1], 'width=&amp;quot;2&amp;quot; ');
 });
 
+// TODO(sfine): More robustly test this method
+QUnit.test('fullyQualifiedURL', function(assert) {
+  var serializer = new HTMLSerializer();
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('src', 'tests.html');
+  var url = serializer.fullyQualifiedURL(iframe);
+  assert.equal(window.location.href, url.href);
+});
 
-// TODO(sfine): How to test fullyQualifiedURL, if the resource doesn't exist?
-// QUnit.test('fullyQualifiedURL', function(assert) {
-// });
-
-// QUnit.test('processSrcHole: top window', function(assert) {
-//   var serializer = new HTMLSerializer();
-//   var img = document.createElement('img');
-//   img.setAttribute('src', 'url');
-//   serializer.processSrcHole(img);
-//   assert.equal()
-// });
+// TODO(sfine): More robustly test this method
+QUnit.test('processSrcHole: top window', function(assert) {
+  var serializer = new HTMLSerializer();
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('src', 'tests.html');
+  serializer.processSrcHole(iframe);
+  assert.equal(serializer.html[0], 'src=');
+  assert.equal(serializer.html[1], '');
+  assert.equal(serializer.html[2], ' ');
+  assert.equal(serializer.srcHoles[1], window.location.href);
+  assert.equal(Object.keys(serializer.srcHoles).length, 1);
+  assert.equal(Object.keys(serializer.frameHoles).length, 0);
+});
 
 QUnit.test('processSrcAttribute: iframe', function(assert) {
   var serializer = new HTMLSerializer();
   var iframe = document.createElement('iframe');
-  iframe.setAttribute('src', 'url');
+  iframe.setAttribute('src', 'tests.html');
   serializer.processSrcAttribute(iframe);
   assert.equal(serializer.html.length, 0);
   assert.equal(Object.keys(serializer.srcHoles).length, 0);
   assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
 
-// TODO(sfine): Test the src attribute, if it will turn it into a full url?
-// QUnit.test('processSrcAttribute: audio', function(assert) {
-//   var serializer = new HTMLSerializer();
-//   var audio = document.createElement('audio');
-//   audio.setAttribute('src', 'url');
-//   serializer.processSrcAttribute(audio);
-//   assert.equal(serializer.html[0], 'src="url" ');
-// });
+// TODO(sfine): More robustly test this method
+QUnit.test('processSrcAttribute: audio', function(assert) {
+  var serializer = new HTMLSerializer();
+  var audio = document.createElement('audio');
+  audio.setAttribute('src', 'tests.html');
+  serializer.processSrcAttribute(audio);
+  assert.equal(serializer.html[0], `src="${window.location.href}" `);
+  assert.equal(serializer.html.length, 1);
+  assert.equal(Object.keys(serializer.srcHoles).length, 0);
+  assert.equal(Object.keys(serializer.frameHoles).length, 0);
+});
 
 QUnit.test('processTree: single node', function(assert) {
   var fixture = document.getElementById('qunit-fixture');
