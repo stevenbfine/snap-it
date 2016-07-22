@@ -165,7 +165,7 @@ var HTMLSerializer = class {
   processSrcAttribute(element) {
     var win = element.ownerDocument.defaultView;
     var url = this.fullyQualifiedURL(element);
-    var sameOrigin = window.location.host == url.href;
+    var sameOrigin = window.location.host == url.host;
     switch (element.tagName) {
       case 'IFRAME':
         break; // Do nothing.

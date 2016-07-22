@@ -79,7 +79,6 @@ QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
   var grandChildFrame2 = document.createElement('iframe');
   fixture.appendChild(childFrame);
   var childFrameBody = childFrame.contentDocument.body;
-  console.log(childFrameBody);
   childFrameBody.appendChild(grandChildFrame1);
   childFrameBody.appendChild(grandChildFrame2);
   assert.equal(
@@ -134,7 +133,6 @@ QUnit.test('processSrcHole: top window', function(assert) {
   assert.equal(serializer.html[2], ' ');
   assert.equal(serializer.srcHoles[1], window.location.href);
   assert.equal(Object.keys(serializer.srcHoles).length, 1);
-  assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
 
 QUnit.test('processSrcAttribute: iframe', function(assert) {
@@ -154,6 +152,18 @@ QUnit.test('processSrcAttribute: audio', function(assert) {
   assert.equal(serializer.html[0], `src="${window.location.href}" `);
   assert.equal(serializer.html.length, 1);
   assert.equal(Object.keys(serializer.srcHoles).length, 0);
+});
+
+QUnit.test('processSrcAttribute: img', function(assert) {
+  var serializer = new HTMLSerializer();
+  var img = document.createElement('img');
+  img.setAttribute('src', 'tests.html');
+  serializer.processSrcAttribute(img);
+  assert.equal(serializer.html[0], 'src=');
+  assert.equal(serializer.html[1], '');
+  assert.equal(serializer.html[2], ' ');
+  assert.equal(serializer.srcHoles[1], window.location.href);
+  assert.equal(Object.keys(serializer.srcHoles).length, 1);
 });
 
 QUnit.test('processTree: single node', function(assert) {
