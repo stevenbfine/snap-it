@@ -147,10 +147,11 @@ var HTMLSerializer = class {
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
       if (element.tagName == 'IFRAME') {
-        this.html.push('srcdoc=');
+        this.html.push('srcdoc=${quote}');
         var name = this.iframeFullyQualifiedName(element.contentWindow);
         this.frameHoles[this.html.length] = name;
         this.html.push(''); // Entry where the iframe contents will go.
+        this.html.push(quote);
       }
     }
   }

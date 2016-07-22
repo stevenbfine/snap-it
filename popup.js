@@ -55,7 +55,7 @@ function outputHTMLString(messages) {
   for (var i = 1; i < messages.length; i++) {
     rootIndex = messages[i].frameIndex === '0' ? i : rootIndex;
   }
-  fillRemainingHoles(messages, rootIndex, 0);
+  fillRemainingHoles(messages, rootIndex);
   return messages[rootIndex].html.join('');
 }
 
@@ -65,38 +65,19 @@ function outputHTMLString(messages) {
  * @param {Array<Object>} messages The response from all of the injected content
  *     scripts.
  * @param {number} i The index of messages to use.
- * @param {number} depth How many parent iframes messages[i] has.
  */
-// TODO(sfine): Generate correct quotation marks in the content_script.js and
-//              remove getQuotes function from popup.js.
-function fillRemainingHoles(messages, i, depth) {
+function fillRemainingHoles(messages, i) {
   var html = messages[i].html;
-  var quotes = getQuotes(depth);
   var frameHoles = messages[i].frameHoles;
   for (var index in frameHoles) {
     if (frameHoles.hasOwnProperty(index)) {
       var frameIndex = frameHoles[index];
       for (var j = 0; j < messages.length; j++) {
         if (messages[j].frameIndex == frameIndex) {
-          fillRemainingHoles(messages, j, depth+1);
-          html[index] = quotes + messages[j].html.join('') + quotes;
+          fillRemainingHoles(messages, j);
+          html[index] = messages[j].html.join('');
         }
       }
     }
-  }
-}
-
-/**
- * Calculate the correct quotes that should be used given how many parent
- * iframes a given frame has.
- *
- * @param {number} depth The number of parent iframes.
- * @return {string} The correctly escaped quotation marks.
- */
-function getQuotes(depth) {
-  if (depth == 0) {
-    return '"';
-  } else {
-    return '&' + new Array(depth).join('amp;') + 'quot;';
   }
 }
