@@ -101,8 +101,6 @@ QUnit.test('processTree: no closing tag', function(assert) {
   );
   assert.equal(serializer.html[2], '>');
   assert.equal(serializer.html.length, 3);
-  assert.equal(Object.keys(serializer.srcHoles).length, 0);
-  assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
 
 QUnit.test('processTree: closing tag', function(assert) {
@@ -117,6 +115,4 @@ QUnit.test('processTree: closing tag', function(assert) {
   assert.equal(serializer.html[2], '>');
   assert.equal(serializer.html[3], '</p>');
   assert.equal(serializer.html.length, 4);
-  assert.equal(Object.keys(serializer.srcHoles).length, 0);
-  assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
