@@ -3,10 +3,7 @@
  * of strings and stores enough state to later asynchronously convert it into an
  * html text file.
  */
- // TODO(sfine): Fix 'Identifier "HTMLSerializer" has already been declared'
- //              error. Check if this is a problem? -> might only happen on
- //              second click.
-class HTMLSerializer {
+var HTMLSerializer = class {
   constructor() {
 
     /**
