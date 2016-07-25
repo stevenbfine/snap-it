@@ -17,6 +17,30 @@ class HTMLSerializer {
     this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
 
     /**
+     * @private {Set<string>} Contains the tag names for elements
+     *     that have no closing tags.  List of tags taken from:
+     *     https://html.spec.whatwg.org/multipage/syntax.html#void-elements.
+     * @const
+     */
+    this.NO_CLOSING_TAGS = new Set([
+      'AREA',
+      'BASE',
+      'BR',
+      'COL',
+      'EMBED',
+      'HR',
+      'IMG',
+      'INPUT',
+      'KEYGEN',
+      'LINK',
+      'META',
+      'PARAM',
+      'SOURCE',
+      'TRACK',
+      'WBR'
+    ]);
+
+    /**
      * @public {Array<string>} This array represents the serialized html that
      *     makes up an element or document. 
      */
@@ -68,7 +92,9 @@ class HTMLSerializer {
         }
       }
 
-      this.html.push(`</${tagName.toLowerCase()}>`);
+      if (!this.NO_CLOSING_TAGS.has(tagName)) {
+        this.html.push(`</${tagName.toLowerCase()}>`);
+      }
     }
   }
 

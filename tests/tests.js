@@ -89,3 +89,30 @@ QUnit.test('processTree: single node', function(assert) {
   assert.equal(Object.keys(serializer.srcHoles).length, 0);
   assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
+
+QUnit.test('processTree: no closing tag', function(assert) {
+  var serializer = new HTMLSerializer();
+  var img = document.createElement('img');
+  serializer.processTree(img);
+  assert.equal(serializer.html[0], '<img ');
+  assert.equal(
+    serializer.html[1],
+    `style="${window.getComputedStyle(img, null).cssText}" `
+  );
+  assert.equal(serializer.html[2], '>');
+  assert.equal(serializer.html.length, 3);
+});
+
+QUnit.test('processTree: closing tag', function(assert) {
+  var serializer = new HTMLSerializer();
+  var p = document.createElement('p');
+  serializer.processTree(p);
+  assert.equal(serializer.html[0], '<p ');
+  assert.equal(
+    serializer.html[1],
+    `style="${window.getComputedStyle(p, null).cssText}" `
+  );
+  assert.equal(serializer.html[2], '>');
+  assert.equal(serializer.html[3], '</p>');
+  assert.equal(serializer.html.length, 4);
+});
