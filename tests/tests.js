@@ -90,6 +90,20 @@ QUnit.test('processTree: single node', function(assert) {
   assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
 
+QUnit.test('HTMLSerializer class loaded twice', function(assert) {
+  assert.expect(0);
+  var done = assert.async();
+  var fixture = document.getElementById('qunit-fixture');
+  var script1 = document.createElement('script');
+  var script2 = document.createElement('script');
+  script1.setAttribute('src', '../content_script.js');
+  script2.setAttribute('src', '../content_script.js');
+  fixture.appendChild(script1);
+  fixture.appendChild(script2);
+  setTimeout(function() {
+    done();
+  }, 0);
+});
 QUnit.test('processTree: no closing tag', function(assert) {
   var serializer = new HTMLSerializer();
   var img = document.createElement('img');
