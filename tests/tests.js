@@ -128,9 +128,9 @@ QUnit.test('processSrcHole: top window', function(assert) {
   var iframe = document.createElement('iframe');
   iframe.setAttribute('src', 'tests.html');
   serializer.processSrcHole(iframe);
-  assert.equal(serializer.html[0], 'src=');
+  assert.equal(serializer.html[0], 'src="');
   assert.equal(serializer.html[1], '');
-  assert.equal(serializer.html[2], ' ');
+  assert.equal(serializer.html[2], '" ');
   assert.equal(serializer.srcHoles[1], window.location.href);
   assert.equal(Object.keys(serializer.srcHoles).length, 1);
 });
@@ -159,9 +159,9 @@ QUnit.test('processSrcAttribute: img', function(assert) {
   var img = document.createElement('img');
   img.setAttribute('src', 'tests.html');
   serializer.processSrcAttribute(img);
-  assert.equal(serializer.html[0], 'src=');
+  assert.equal(serializer.html[0], 'src="');
   assert.equal(serializer.html[1], '');
-  assert.equal(serializer.html[2], ' ');
+  assert.equal(serializer.html[2], '" ');
   assert.equal(serializer.srcHoles[1], window.location.href);
   assert.equal(Object.keys(serializer.srcHoles).length, 1);
 });

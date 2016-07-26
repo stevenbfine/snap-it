@@ -147,10 +147,11 @@ var HTMLSerializer = class {
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
       if (element.tagName == 'IFRAME') {
-        this.html.push('srcdoc=');
+        this.html.push('srcdoc=${quote}');
         var name = this.iframeFullyQualifiedName(element.contentWindow);
         this.frameHoles[this.html.length] = name;
         this.html.push(''); // Entry where the iframe contents will go.
+        this.html.push(quote);
       }
     }
   }
@@ -218,10 +219,11 @@ var HTMLSerializer = class {
    */
   processSrcHole(element) {
     var src = element.attributes.src;
-    this.html.push(`${src.name}=`);
+    var quote = this.escapedQuote(this.windowDepth(window));
+    this.html.push(`${src.name}=${quote}`);
     this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
     this.html.push(''); // Entry where data url will go.
-    this.html.push(' '); // Add a space before the next attribute.
+    this.html.push(quote + ' '); // Add a space before the next attribute.
   }
 
   /**
@@ -318,9 +320,7 @@ function fillSrcHoles(htmlSerializer, callback) {
     }).then(function(blob) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        var windowDepth = htmlSerializer.windowDepth(window);
-        var quote = htmlSerializer.escapedQuote(windowDepth);
-        htmlSerializer.html[index] = quote + e.target.result + quote;
+        htmlSerializer.html[index] = e.target.result;
         fillSrcHoles(htmlSerializer, callback);
       }
       reader.readAsDataURL(blob);
