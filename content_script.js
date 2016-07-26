@@ -7,11 +7,11 @@ var HTMLSerializer = class {
   constructor() {
 
     /**
-     * @private {Set<string>} Contains the lower case tag names that should be
+     * @private {Set<string>} Contains the tag names that should be
      *     ignored while serializing a document.
      * @const
      */
-    this.FILTERED_TAGS = new Set(['script', 'noscript', 'style', 'link']);
+    this.FILTERED_TAGS = new Set(['SCRIPT', 'NOSCRIPT', 'STYLE', 'LINK']);
 
     /**
      * @private {Set<string>} Contains the tag names for elements
@@ -73,7 +73,7 @@ var HTMLSerializer = class {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
       // Ignore elements that don't have tags and are not text.
-    } else if (tagName && this.FILTERED_TAGS.has(tagName.toLowerCase())) {
+    } else if (tagName && this.FILTERED_TAGS.has(tagName)) {
       // Filter out elements that are in filteredTags.
     } else if (element.nodeType == Node.TEXT_NODE) {
       this.html.push(element.textContent);
@@ -141,12 +141,12 @@ var HTMLSerializer = class {
           default:
             var name = attribute.name;
             var value = attribute.value;
-            this.processSimpleAttribute(name, value);
+            this.processSimpleAttribute(win, name, value);
         }
       }
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
-      if (element.tagName.toLowerCase() == 'iframe') {
+      if (element.tagName == 'IFRAME') {
         this.html.push('srcdoc=');
         var name = this.iframeFullyQualifiedName(element.contentWindow);
         this.frameHoles[this.html.length] = name;
@@ -163,9 +163,50 @@ var HTMLSerializer = class {
    * @private
    */
   processSrcAttribute(element) {
-    if (element.tagName.toLowerCase() != 'iframe') {
-      this.processSrcHole(element);
-    } 
+    var win = element.ownerDocument.defaultView;
+    var url = this.fullyQualifiedURL(element);
+    var sameOrigin = window.location.host == url.host;
+    switch (element.tagName) {
+      case 'IFRAME':
+        break; // Do nothing.
+      case 'SOURCE':
+        var parent = element.parent;
+        if (parent && parent.tagName == 'PICTURE' && sameOrigin) {
+          this.processSrcHole(element);
+        } else {
+          this.processSimpleAttribute(win, 'src', url.href);
+        }
+        break;
+      case 'INPUT':
+        var type = element.attributes.type;
+        if (type && type.value.toLowerCase() == 'image') {
+          this.processSrcHole(element);
+        }
+        break;
+      case 'IMG':
+        if (sameOrigin) {
+          this.processSrcHole(element);
+        } else {
+          this.processSimpleAttribute(win, 'src', url.href);
+        }
+        break;
+      default:
+        this.processSimpleAttribute(win, 'src', url.href);
+    }
+  }
+
+  /**
+   * Get a URL object for the value of the |element|'s src attribute.
+   *
+   * @param {Element} element The element for which to retrieve the URL.
+   * @return {URL} The URL object.
+   */
+  fullyQualifiedURL(element) {
+    var url = element.attributes.src.value;
+    var a = document.createElement('a');
+    a.href = url;
+    url = a.href; // Retrieve fully qualified URL.
+    return new URL(url);
   }
 
   /**
@@ -178,7 +219,7 @@ var HTMLSerializer = class {
   processSrcHole(element) {
     var src = element.attributes.src;
     this.html.push(`${src.name}=`);
-    this.srcHoles[this.html.length] = src.value;
+    this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
     this.html.push(''); // Entry where data url will go.
     this.html.push(' '); // Add a space before the next attribute.
   }
@@ -186,11 +227,12 @@ var HTMLSerializer = class {
   /**
    * Add a name and value pair to the list of attributes in |this.html|.
    *
+   * @param {Window} win The window of the Element that is being processed.
    * @param {string} name The name of the attribute.
    * @param {string} value The value of the attribute.
    */
-  processSimpleAttribute(name, value) {
-    var quote = this.escapedQuote(this.windowDepth(window));
+  processSimpleAttribute(win, name, value) {
+    var quote = this.escapedQuote(this.windowDepth(win));
     this.html.push(`${name}=${quote}${value}${quote} `);
   }
 
@@ -271,9 +313,6 @@ function fillSrcHoles(htmlSerializer, callback) {
     var index = Object.keys(htmlSerializer.srcHoles)[0];
     var src = htmlSerializer.srcHoles[index];
     delete htmlSerializer.srcHoles[index];
-    // TODO(sfine): Only create a data url if the src url is from the same
-    //              origin. Additionally, process imgs, videos, etc..
-    //              differently.
     fetch(src).then(function(response) {
       return response.blob();
     }).then(function(blob) {
@@ -292,8 +331,6 @@ function fillSrcHoles(htmlSerializer, callback) {
   }
 }
 
-// TODO(sfine): Perhaps handle images seperately. At least store height and
-//              width.
 /**
  * Send the neccessary HTMLSerializer properties back to the extension.
  *
