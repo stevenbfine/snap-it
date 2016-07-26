@@ -121,11 +121,7 @@ var HTMLSerializer = class {
   processAttributes(element) {
     var win = element.ownerDocument.defaultView;
     var style = win.getComputedStyle(element, null).cssText;
-
-    // TODO(sfine): Ensure that getComputedStyle returns absolute urls.
-    //              https://www.w3.org/TR/css3-values/ 3.4.1
-
-    var windowDepth = this.windowDepth(window);
+    var windowDepth = this.windowDepth(win);
     style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
     var quote = this.escapedQuote(windowDepth);
     this.html.push(`style=${quote}${style}${quote} `);
@@ -218,8 +214,9 @@ var HTMLSerializer = class {
    * @private
    */
   processSrcHole(element) {
+    var win = element.ownerDocument.defaultView;
     var src = element.attributes.src;
-    var quote = this.escapedQuote(this.windowDepth(window));
+    var quote = this.escapedQuote(this.windowDepth(win));
     this.html.push(`${src.name}=${quote}`);
     this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
     this.html.push(''); // Entry where data url will go.
