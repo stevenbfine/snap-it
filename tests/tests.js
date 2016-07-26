@@ -191,6 +191,7 @@ QUnit.test('HTMLSerializer class loaded twice', function(assert) {
     done();
   }, 0);
 });
+
 QUnit.test('processTree: no closing tag', function(assert) {
   var serializer = new HTMLSerializer();
   var img = document.createElement('img');
@@ -217,3 +218,53 @@ QUnit.test('processTree: closing tag', function(assert) {
   assert.equal(serializer.html[3], '</p>');
   assert.equal(serializer.html.length, 4);
 });
+
+QUnit.test(
+  'processAttributes: img with height and width attributes',
+  function(assert) {
+    var serializer = new HTMLSerializer();
+    var fixture = document.getElementById('qunit-fixture');
+    var img = document.createElement('img');
+    img.setAttribute('height', 5);
+    img.setAttribute('width', 5);
+    fixture.appendChild(img);
+    serializer.processAttributes(img);
+    var styleText = serializer.html[0];
+    assert.ok(styleText.includes(' height: 5px;'));
+    assert.ok(styleText.includes(' width: 5px;'));
+  }
+);
+
+QUnit.test(
+  'processAttributes: img without height and width attributes',
+  function(assert) {
+    var serializer = new HTMLSerializer();
+    var fixture = document.getElementById('qunit-fixture');
+    var img = document.createElement('img');
+    fixture.appendChild(img);
+    var style = window.getComputedStyle(img, null);
+    serializer.processAttributes(img);
+    var styleText = serializer.html[0];
+    assert.ok(styleText.includes(` height: ${style.height};`));
+    assert.ok(styleText.includes(` width: ${style.width};`));
+  }
+);
+
+QUnit.test(
+  'processAttributes: img with height and width attributes and inline style',
+  function(assert) {
+    var serializer = new HTMLSerializer();
+    var fixture = document.getElementById('qunit-fixture');
+    var img = document.createElement('img');
+    img.setAttribute('height', 5);
+    img.setAttribute('width', 5);
+    img.setAttribute('style', 'height: 10px; width: 10px;');
+    fixture.appendChild(img);
+    serializer.processAttributes(img);
+    var styleText = serializer.html[0];
+    assert.ok(styleText.includes(' height: 10px;'));
+    assert.ok(styleText.includes(' width: 10px;'));
+    assert.notOk(styleText.includes(' height: 5px;'));
+    assert.notOk(styleText.includes(' width: 5px;'));
+  }
+);
