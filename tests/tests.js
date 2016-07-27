@@ -183,8 +183,8 @@ QUnit.test('HTMLSerializer class loaded twice', function(assert) {
   var fixture = document.getElementById('qunit-fixture');
   var script1 = document.createElement('script');
   var script2 = document.createElement('script');
-  script1.setAttribute('src', '../content_script.js');
-  script2.setAttribute('src', '../content_script.js');
+  script1.setAttribute('src', '../HTMLSerializer.js');
+  script2.setAttribute('src', '../HTMLSerializer.js');
   fixture.appendChild(script1);
   fixture.appendChild(script2);
   setTimeout(function() {
