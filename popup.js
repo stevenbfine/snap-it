@@ -14,14 +14,15 @@ function click() {
 
   // TODO(sfine): figure out why not all iframes are getting content scripts
   //              injected.
-  chrome.tabs.executeScript(null, {file: 'content_script.js', allFrames: true},
-      function(response) {
-        results = response;
-        if (messages.length == results.length) {
-          completeProcess(messages);
-        }
-      }
-  );
+  var serializer = {file: 'HTMLSerializer.js', allFrames: true};
+  chrome.tabs.executeScript(null, serializer, function() {
+    var contentScript = {file: 'content_script.js', allFrames: true};
+    chrome.tabs.executeScript(null, contentScript, function(response) {
+      results = response;
+      if (messages.length == results.length)
+        completeProcess(messages);
+    });
+  });
 }
 
 /**
