@@ -11,6 +11,6 @@
   },
 
   "permissions": [
-    "currentTab", "http://*/*", "https://*/*"
+    "activeTab", "http://*/*", "https://*/*"
   ]
 }
