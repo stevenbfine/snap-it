@@ -1,7 +1,7 @@
 /**
- * HTML serializer that takes a document and synchronously stores it as an array
- * of strings and stores enough state to later asynchronously convert it into an
- * html text file.
+ * HTML Serializer that takes a document and synchronously stores it as an array
+ * of strings, then asynchronously retrieves data URLs for same-origin images.
+ * It stores enough state to later be converted to an html text file.
  */
 var HTMLSerializer = class {
   constructor() {
