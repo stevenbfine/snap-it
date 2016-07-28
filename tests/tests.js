@@ -15,16 +15,27 @@ QUnit.test('windowDepth: multiple parent windows', function(assert) {
   assert.equal(serializer.windowDepth(grandChildFrame.contentWindow), 2);
 });
 
-QUnit.test('escapedQuote: zero depth', function(assert) {
+QUnit.test('escapedCharacter: zero depth', function(assert) {
   var serializer = new HTMLSerializer();
-  assert.equal(serializer.escapedQuote(0), '"');
+  assert.equal(serializer.escapedCharacter('"', 0), '"');
+  assert.equal(serializer.escapedCharacter("'", 0), "'");
+  assert.equal(serializer.escapedCharacter('<', 0), '<');
+  assert.equal(serializer.escapedCharacter('>', 0), '>');
+  assert.equal(serializer.escapedCharacter('&', 0), '&');
 });
 
-QUnit.test('escapedQuote: nonzero depth', function(assert) {
+QUnit.test('escapedCharacter: nonzero depth', function(assert) {
   var serializer = new HTMLSerializer();
-  assert.equal(serializer.escapedQuote(1), '&quot;');
-  assert.equal(serializer.escapedQuote(2), '&amp;quot;');
-  assert.equal(serializer.escapedQuote(3), '&amp;amp;quot;');
+  assert.equal(serializer.escapedCharacter('"', 1), '&quot;');
+  assert.equal(serializer.escapedCharacter('"', 2), '&amp;quot;');
+  assert.equal(serializer.escapedCharacter("'", 1), '&#39;');
+  assert.equal(serializer.escapedCharacter("'", 2), '&amp;#39;');
+  assert.equal(serializer.escapedCharacter('<', 1), '&lt;');
+  assert.equal(serializer.escapedCharacter('<', 2), '&amp;lt;');
+  assert.equal(serializer.escapedCharacter('>', 1), '&gt;');
+  assert.equal(serializer.escapedCharacter('>', 2), '&amp;gt;');
+  assert.equal(serializer.escapedCharacter('&', 1), '&amp;');
+  assert.equal(serializer.escapedCharacter('&', 2), '&amp;amp;');
 });
 
 QUnit.test('iframeIndex: single layer', function(assert) {
@@ -268,3 +279,49 @@ QUnit.test(
     assert.notOk(styleText.includes(' width: 5px;'));
   }
 );
+
+QUnit.test('processText: simple text node', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createTextNode('Simple text');
+  fixture.appendChild(node);
+  serializer.processText(node);
+  assert.equal(serializer.html[0], 'Simple text');
+});
+
+QUnit.test('processText: escaped characters', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createTextNode(`<div> with '&"`);
+  fixture.appendChild(node);
+  serializer.processText(node);
+  assert.equal(
+    serializer.html[0],
+    '&lt;div&gt; with &#39;&amp;&quot;'
+  );
+});
+
+QUnit.test('processText: nested escaped characters', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var childFrame = document.createElement('iframe');
+  var grandChildFrame = document.createElement('iframe');
+  fixture.appendChild(childFrame);
+  var childFrameBody = childFrame.contentDocument.body;
+  childFrameBody.appendChild(grandChildFrame);
+  var grandChildFrameBody = grandChildFrame.contentDocument.body;
+  var node1 = document.createTextNode(`<div> with '&"`);
+  var node2 = document.createTextNode(`<div> with '&"`);
+  childFrameBody.appendChild(node1);
+  grandChildFrameBody.appendChild(node2);
+  serializer.processText(node1);
+  serializer.processText(node2);
+  assert.equal(
+    serializer.html[0],
+    '&amp;lt;div&amp;gt; with &amp;#39;&amp;amp;&amp;quot;'
+  );
+  assert.equal(
+    serializer.html[1],
+    '&amp;amp;lt;div&amp;amp;gt; with &amp;amp;#39;&amp;amp;amp;&amp;amp;quot;'
+  );
+});
