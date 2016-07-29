@@ -139,8 +139,7 @@ var HTMLSerializer = class {
     // Some escaping introduces '&' characters so we escape '&' first to prevent
     // escaping the '&' added by other escape substitutions.
     text = text.replace(/&/g, this.escapedCharacter('&', windowDepth+1));
-    var chars = Object.keys(this.escapedCharacters);
-    for (var i = 0, char; char = chars[i]; i++) {
+    for (var char in this.escapedCharacters) {
       if (char != '&') {
         var regExp = new RegExp(char, 'g');
         var escapedCharacter = this.escapedCharacter(char, windowDepth+1);
