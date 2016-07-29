@@ -126,6 +126,42 @@ QUnit.test('processSimpleAttribute: nested window', function(assert) {
   assert.equal(serializer.html[1], 'width=&amp;quot;2&amp;quot; ');
 });
 
+QUnit.test('processHoleAttribute: top window', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var win = fixture.ownerDocument.defaultView;
+  var valueIndex = serializer.processHoleAttribute(win, 'height');
+  assert.equal(valueIndex, 1);
+  assert.equal(serializer.html[0], 'height="');
+  assert.equal(serializer.html[2], '" ');
+});
+
+QUnit.test('processHoleAttribute: nested window', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var childFrame = document.createElement('iframe');
+  var grandChildFrame = document.createElement('iframe');
+  fixture.appendChild(childFrame);
+  var childFrameBody = childFrame.contentDocument.body;
+  childFrameBody.appendChild(grandChildFrame);
+  var childFrameWindow = childFrame.contentDocument.defaultView;
+  var grandChildFrameWindow = grandChildFrame.contentDocument.defaultView;
+  var childValueIndex = serializer.processHoleAttribute(
+    childFrameWindow,
+    'height'
+  );
+  var grandChildValueIndex = serializer.processHoleAttribute(
+    grandChildFrameWindow,
+    'width'
+  );
+  assert.equal(childValueIndex, 1);
+  assert.equal(serializer.html[0], 'height=&quot;');
+  assert.equal(serializer.html[2], '&quot; ');;
+  assert.equal(grandChildValueIndex, 4);
+  assert.equal(serializer.html[3], 'width=&amp;quot;');
+  assert.equal(serializer.html[5], '&amp;quot; ');;
+});
+
 QUnit.test('fullyQualifiedURL', function(assert) {
   var serializer = new HTMLSerializer();
   var iframe = document.createElement('iframe');
