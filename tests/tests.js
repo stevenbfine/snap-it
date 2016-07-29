@@ -159,7 +159,7 @@ QUnit.test('processHoleAttribute: nested window', function(assert) {
   assert.equal(serializer.html[2], '&quot; ');;
   assert.equal(grandChildValueIndex, 4);
   assert.equal(serializer.html[3], 'width=&amp;quot;');
-  assert.equal(serializer.html[5], '&amp;quot; ');;
+  assert.equal(serializer.html[5], '&amp;quot; ');
 });
 
 QUnit.test('fullyQualifiedURL', function(assert) {
