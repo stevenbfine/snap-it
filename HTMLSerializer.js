@@ -38,6 +38,20 @@ var HTMLSerializer = class {
     ]);
 
     /**
+     * @private {Object<string, string>} The keys are all characters that need
+     *     to be properly escaped when in a text node.  The value is the
+     *     properly escaped string.
+     * @const
+     */
+    this.CHARACTER_ESCAPING_MAP = {
+      '&' : '&amp;',
+      '<' : '&lt;',
+      '>' : '&gt;',
+      '"' : '&quot;',
+      "'" : '&#39;'
+    };
+
+    /**
      * @public {Array<string>} This array represents the serialized html that
      *     makes up an element or document. 
      */
@@ -76,7 +90,7 @@ var HTMLSerializer = class {
     } else if (tagName && this.FILTERED_TAGS.has(tagName)) {
       // Filter out elements that are in filteredTags.
     } else if (element.nodeType == Node.TEXT_NODE) {
-      this.html.push(element.textContent);
+      this.processText(element);
     } else {
       this.html.push(`<${tagName.toLowerCase()} `);
       this.processAttributes(element);
@@ -112,6 +126,30 @@ var HTMLSerializer = class {
   }
 
   /**
+   * Takes an html node of type Node.TEXT_NODE, and add its text content with
+   *     all characters properly escaped to |this.html|.
+   * @param {Node} node The text node.
+   */
+   // TODO(sfine): Take care of attribute value normalization:
+   // https://developers.whatwg.org/the-iframe-element.html#the-iframe-element
+  processText(node) {
+    var win = node.ownerDocument.defaultView;
+    var nestingDepth = this.windowDepth(win);
+    var text = node.textContent;
+    // Some escaping introduces '&' characters so we escape '&' first to prevent
+    // escaping the '&' added by other escape substitutions.
+    text = text.replace(/&/g, this.escapedCharacter('&', nestingDepth+1));
+    for (var char in this.CHARACTER_ESCAPING_MAP) {
+      if (char != '&') {
+        var regExp = new RegExp(char, 'g');
+        var escapedCharacter = this.escapedCharacter(char, nestingDepth+1);
+        text = text.replace(regExp, escapedCharacter);
+      }
+    }
+    this.html.push(text);
+  }
+
+  /**
    * Takes an html element, and populates this object's fields with the
    * appropriate attribute names and values.
    *
@@ -121,10 +159,9 @@ var HTMLSerializer = class {
   processAttributes(element) {
     var win = element.ownerDocument.defaultView;
     var style = win.getComputedStyle(element, null).cssText;
-    var windowDepth = this.windowDepth(win);
-    style = style.replace(/"/g, this.escapedQuote(windowDepth+1));
-    var quote = this.escapedQuote(windowDepth);
-    this.html.push(`style=${quote}${style}${quote} `);
+    var nestingDepth = this.windowDepth(win);
+    style = style.replace(/"/g, this.escapedCharacter('"', nestingDepth+1));
+    this.processSimpleAttribute(win, 'style', style);
 
     var attributes = element.attributes;
     if (attributes) {
@@ -143,11 +180,9 @@ var HTMLSerializer = class {
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
       if (element.tagName == 'IFRAME') {
-        this.html.push('srcdoc=${quote}');
-        var name = this.iframeFullyQualifiedName(element.contentWindow);
-        this.frameHoles[this.html.length] = name;
-        this.html.push(''); // Entry where the iframe contents will go.
-        this.html.push(quote);
+        var valueIndex = this.processHoleAttribute(win, 'srcdoc');
+        var iframeName = this.iframeFullyQualifiedName(element.contentWindow);
+        this.frameHoles[valueIndex] = iframeName;
       }
     }
   }
@@ -215,12 +250,25 @@ var HTMLSerializer = class {
    */
   processSrcHole(element) {
     var win = element.ownerDocument.defaultView;
-    var src = element.attributes.src;
-    var quote = this.escapedQuote(this.windowDepth(win));
-    this.html.push(`${src.name}=${quote}`);
-    this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
-    this.html.push(''); // Entry where data url will go.
+    var valueIndex = this.processHoleAttribute(win, 'src');
+    this.srcHoles[valueIndex] = this.fullyQualifiedURL(element).href;
+  }
+
+  /**
+   * Add an attribute with name |name| to |this.html| with an empty index for
+   * its value that can later be filled in.
+   *
+   * @param {Window} win The window of the Element that is being processed.
+   * @param {string} name The name of the attribute.
+   * @return {number} The index in |this.html| where the value will be placed.
+   */
+  processHoleAttribute(win, name) {
+    var quote = this.escapedCharacter('"', this.windowDepth(win));
+    this.html.push(`${name}=${quote}`);
+    var valueIndex = this.html.length;
+    this.html.push(''); // Entry where value will go.
     this.html.push(quote + ' '); // Add a space before the next attribute.
+    return valueIndex;
   }
 
   /**
@@ -231,7 +279,7 @@ var HTMLSerializer = class {
    * @param {string} value The value of the attribute.
    */
   processSimpleAttribute(win, name, value) {
-    var quote = this.escapedQuote(this.windowDepth(win));
+    var quote = this.escapedCharacter('"', this.windowDepth(win));
     this.html.push(`${name}=${quote}${value}${quote} `);
   }
 
@@ -271,17 +319,20 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Calculate the correct quotes that should be used given the nesting depth of
-   * the window in the frame tree.
+   * Calculate the correct encoding of a character that should be used given the
+   * nesting depth of the window in the frame tree.
    *
-   * @param {number} depth The nesting depth of this window in the frame tree.
-   * @return {string} The correctly escaped quotation marks.
+   * @param {string} char The character that should be escaped.
+   * @param {number} depth The nesting depth of the appropriate window in the
+   *     frame tree.
+   * @return {string} The correctly escaped string.
    */
-  escapedQuote(depth) {
+  escapedCharacter(char, depth) {
     if (depth == 0) {
-      return '"';
+      return char;
     } else {
-      return '&' + new Array(depth).join('amp;') + 'quot;';
+      var arr = 'amp;'.repeat(depth-1);
+      return '&' + arr + this.CHARACTER_ESCAPING_MAP[char].slice(1);
     }
   }
 
