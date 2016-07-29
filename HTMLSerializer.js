@@ -134,15 +134,15 @@ var HTMLSerializer = class {
    // https://developers.whatwg.org/the-iframe-element.html#the-iframe-element
   processText(node) {
     var win = node.ownerDocument.defaultView;
-    var windowDepth = this.windowDepth(win);
+    var nestingDepth = this.windowDepth(win);
     var text = node.textContent;
     // Some escaping introduces '&' characters so we escape '&' first to prevent
     // escaping the '&' added by other escape substitutions.
-    text = text.replace(/&/g, this.escapedCharacter('&', windowDepth+1));
+    text = text.replace(/&/g, this.escapedCharacter('&', nestingDepth+1));
     for (var char in this.CHARACTER_ESCAPING_MAP) {
       if (char != '&') {
         var regExp = new RegExp(char, 'g');
-        var escapedCharacter = this.escapedCharacter(char, windowDepth+1);
+        var escapedCharacter = this.escapedCharacter(char, nestingDepth+1);
         text = text.replace(regExp, escapedCharacter);
       }
     }
@@ -159,9 +159,9 @@ var HTMLSerializer = class {
   processAttributes(element) {
     var win = element.ownerDocument.defaultView;
     var style = win.getComputedStyle(element, null).cssText;
-    var windowDepth = this.windowDepth(win);
-    style = style.replace(/"/g, this.escapedCharacter('"', windowDepth+1));
-    var quote = this.escapedCharacter('"', windowDepth);
+    var nestingDepth = this.windowDepth(win);
+    style = style.replace(/"/g, this.escapedCharacter('"', nestingDepth+1));
+    var quote = this.escapedCharacter('"', nestingDepth);
     this.html.push(`style=${quote}${style}${quote} `);
 
     var attributes = element.attributes;
