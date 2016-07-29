@@ -136,7 +136,8 @@ var HTMLSerializer = class {
     var win = node.ownerDocument.defaultView;
     var windowDepth = this.windowDepth(win);
     var text = node.textContent;
-    // & must be processed first.
+    // Some escaping introduces '&' characters so we escape '&' first to prevent
+    // escaping the '&' added by other escape substitutions.
     text = text.replace(/&/g, this.escapedCharacter('&', windowDepth+1));
     var chars = Object.keys(this.escapedCharacters);
     for (var i = 0, char; char = chars[i]; i++) {
