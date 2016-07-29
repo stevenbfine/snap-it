@@ -331,7 +331,7 @@ var HTMLSerializer = class {
     if (depth == 0) {
       return char;
     } else {
-      var arr = new Array(depth).join('amp;');
+      var arr = 'amp;'.repeat(depth-1);
       return '&' + arr + this.CHARACTER_ESCAPING_MAP[char].slice(1);
     }
   }
