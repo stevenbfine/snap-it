@@ -161,8 +161,7 @@ var HTMLSerializer = class {
     var style = win.getComputedStyle(element, null).cssText;
     var nestingDepth = this.windowDepth(win);
     style = style.replace(/"/g, this.escapedCharacter('"', nestingDepth+1));
-    var quote = this.escapedCharacter('"', nestingDepth);
-    this.html.push(`style=${quote}${style}${quote} `);
+    this.processSimpleAttribute(win, 'style', style);
 
     var attributes = element.attributes;
     if (attributes) {
@@ -181,11 +180,9 @@ var HTMLSerializer = class {
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
       if (element.tagName == 'IFRAME') {
-        this.html.push('srcdoc=${quote}');
-        var name = this.iframeFullyQualifiedName(element.contentWindow);
-        this.frameHoles[this.html.length] = name;
-        this.html.push(''); // Entry where the iframe contents will go.
-        this.html.push(quote);
+        var valueIndex = this.processHoleAttribute(win, 'srcdoc');
+        var iframeName = this.iframeFullyQualifiedName(element.contentWindow);
+        this.frameHoles[valueIndex] = iframeName;
       }
     }
   }
@@ -253,12 +250,25 @@ var HTMLSerializer = class {
    */
   processSrcHole(element) {
     var win = element.ownerDocument.defaultView;
-    var src = element.attributes.src;
+    var valueIndex = this.processHoleAttribute(win, 'src');
+    this.srcHoles[valueIndex] = this.fullyQualifiedURL(element).href;
+  }
+
+  /**
+   * Add an attribute with name |name| to |this.html| with an empty index for
+   * its value that can later be filled in.
+   *
+   * @param {Window} win The window of the Element that is being processed.
+   * @param {string} name The name of the attribute.
+   * @return {number} The index in |this.html| where the value will be placed.
+   */
+  processHoleAttribute(win, name) {
     var quote = this.escapedCharacter('"', this.windowDepth(win));
-    this.html.push(`${src.name}=${quote}`);
-    this.srcHoles[this.html.length] = this.fullyQualifiedURL(element).href;
-    this.html.push(''); // Entry where data url will go.
+    this.html.push(`${name}=${quote}`);
+    var valueIndex = this.html.length;
+    this.html.push(''); // Entry where value will go.
     this.html.push(quote + ' '); // Add a space before the next attribute.
+    return valueIndex;
   }
 
   /**
