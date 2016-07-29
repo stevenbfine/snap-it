@@ -43,7 +43,7 @@ var HTMLSerializer = class {
      *     properly escaped string.
      * @const
      */
-    this.escapedCharacters = {
+    this.CHARACTER_ESCAPING_MAP = {
       '&' : '&amp;',
       '<' : '&lt;',
       '>' : '&gt;',
@@ -139,7 +139,7 @@ var HTMLSerializer = class {
     // Some escaping introduces '&' characters so we escape '&' first to prevent
     // escaping the '&' added by other escape substitutions.
     text = text.replace(/&/g, this.escapedCharacter('&', windowDepth+1));
-    for (var char in this.escapedCharacters) {
+    for (var char in this.CHARACTER_ESCAPING_MAP) {
       if (char != '&') {
         var regExp = new RegExp(char, 'g');
         var escapedCharacter = this.escapedCharacter(char, windowDepth+1);
@@ -322,7 +322,7 @@ var HTMLSerializer = class {
       return char;
     } else {
       var arr = new Array(depth).join('amp;');
-      return '&' + arr + this.escapedCharacters[char].slice(1);
+      return '&' + arr + this.CHARACTER_ESCAPING_MAP[char].slice(1);
     }
   }
 
