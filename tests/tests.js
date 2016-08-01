@@ -361,3 +361,45 @@ QUnit.test('processText: nested escaped characters', function(assert) {
     '&amp;amp;lt;div&amp;amp;gt; with &amp;amp;#39;&amp;amp;amp;&amp;amp;quot;'
   );
 });
+
+QUnit.test('processPseudoElements: element with id', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var element = document.createElement('div');
+  element.setAttribute('id', 'myID');
+  var style = document.createElement('style');
+  style.appendChild(document.createTextNode('div::before{content:"test";}'));
+  fixture.appendChild(style);
+  fixture.appendChild(element);
+  serializer.processPseudoElements(element);
+  var styleText = window.getComputedStyle(element, ':before').cssText;
+  assert.equal(serializer.html.length, 0);
+  assert.equal(serializer.pseudoElementCSS.length, 1);
+  assert.equal(serializer.pseudoElementCSS[0], `#myID::before{${styleText}} `);
+});
+
+QUnit.test('processPseudoElements: element without id', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var element = document.createElement('div');
+  var style = document.createElement('style');
+  style.appendChild(document.createTextNode('div::after{content:"test";}'));
+  fixture.appendChild(style);
+  fixture.appendChild(element);
+  serializer.processPseudoElements(element);
+  var styleText = window.getComputedStyle(element, ':after').cssText;
+  assert.equal(serializer.html[0], 'id="id0" ');
+  assert.equal(serializer.pseudoElementCSS.length, 1);
+  assert.equal(serializer.pseudoElementCSS[0], `#id0::after{${styleText}} `);
+});
+
+QUnit.test('generateIDGenerator', function(assert) {
+  var serializer = new HTMLSerializer();
+  var generateID1 = serializer.generateIDGenerator();
+  var generateID2 = serializer.generateIDGenerator();
+  assert.equal(generateID1(), 'id0');
+  assert.equal(generateID1(), 'id1');
+  assert.equal(generateID2(), 'id0');
+  assert.equal(generateID2(), 'id1');
+
+});
