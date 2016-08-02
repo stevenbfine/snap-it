@@ -404,7 +404,7 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Create a function that will generate unique strings which can be used as
+   * Create a function that will generate strings which can be used as
    * ids.
    *
    * @return {Function} A funtion that generates a unique string each time it is
