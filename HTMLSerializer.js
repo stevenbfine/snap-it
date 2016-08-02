@@ -137,6 +137,7 @@ var HTMLSerializer = class {
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
+    var stylePlaceholderIndex = this.html.length;
     this.html.push(''); // Entry where pseudo element style tag will go.
     var nodes = doc.childNodes;
     for (var i = 0, node; node = nodes[i]; i++) {
@@ -145,7 +146,7 @@ var HTMLSerializer = class {
       }
     }
     var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
-    this.html[1] = pseudoElements;
+    this.html[stylePlaceholderIndex] = pseudoElements;
   }
 
   /**
