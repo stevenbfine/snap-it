@@ -390,7 +390,31 @@ QUnit.test('processPseudoElements: element without id', function(assert) {
   var styleText = window.getComputedStyle(element, ':after').cssText;
   assert.equal(serializer.html[0], 'id="snap-it0" ');
   assert.equal(serializer.pseudoElementCSS.length, 1);
-  assert.equal(serializer.pseudoElementCSS[0], `#snap-it0::after{${styleText}} `);
+  assert.equal(
+    serializer.pseudoElementCSS[0],
+    `#snap-it0::after{${styleText}} `
+  );
+});
+
+QUnit.test('processPseudoElements: generated id exists', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var span = document.createElement('span');
+  span.setAttribute('id', 'snap-it0');
+  var div = document.createElement('div');
+  var style = document.createElement('style');
+  style.appendChild(document.createTextNode('div::after{content:"test";}'));
+  fixture.appendChild(style);
+  fixture.appendChild(span);
+  fixture.appendChild(div);
+  serializer.processPseudoElements(div);
+  var styleText = window.getComputedStyle(div, ':after').cssText;
+  assert.equal(serializer.html[0], 'id="snap-it1" ');
+  assert.equal(serializer.pseudoElementCSS.length, 1);
+  assert.equal(
+    serializer.pseudoElementCSS[0],
+    `#snap-it1::after{${styleText}} `
+  );
 });
 
 QUnit.test('generateIDGenerator', function(assert) {
@@ -401,5 +425,4 @@ QUnit.test('generateIDGenerator', function(assert) {
   assert.equal(generateID1(), 'snap-it1');
   assert.equal(generateID2(), 'snap-it0');
   assert.equal(generateID2(), 'snap-it1');
-
 });
