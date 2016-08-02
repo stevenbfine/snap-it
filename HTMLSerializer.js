@@ -38,6 +38,13 @@ var HTMLSerializer = class {
     ]);
 
     /**
+     * @private {Array<string>} A list of the pseudo elements that will be
+     *     processed.
+     * @const
+     */
+    this.PSEUDO_ELEMENTS = [':before', ':after'];
+
+    /**
      * @private {Object<string, string>} The keys are all characters that need
      *     to be properly escaped when in a text node.  The value is the
      *     properly escaped string.
@@ -72,6 +79,18 @@ var HTMLSerializer = class {
      *     index of |this.html|.
      */
     this.frameHoles = {};
+
+    /**
+     * @private {Array<string>} Each element of this array is a string
+     *     representing CSS that defines a single pseudo element.
+     */
+    this.pseudoElementCSS = [];
+
+    /**
+     * @private {Function} A funtion that generates a unique string each time it
+     * is called, which can be used as an element id.
+     */
+    this.generateId = this.generateIdGenerator();
   }
 
   /**
@@ -94,6 +113,7 @@ var HTMLSerializer = class {
     } else {
       this.html.push(`<${tagName.toLowerCase()} `);
       this.processAttributes(element);
+      this.processPseudoElements(element);
       this.html.push('>');
 
       var children = element.childNodes;
@@ -117,10 +137,46 @@ var HTMLSerializer = class {
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
+    var stylePlaceholderIndex = this.html.length;
+    this.html.push(''); // Entry where pseudo element style tag will go.
     var nodes = doc.childNodes;
     for (var i = 0, node; node = nodes[i]; i++) {
       if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
         this.processTree(node, 0);
+      }
+    }
+    var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
+    this.html[stylePlaceholderIndex] = pseudoElements;
+  }
+
+  /**
+   * Takes an HTML element, and if it has pseudo elements listed in
+   * |this.PSEUDO_ELEMENTS| they will be added to |this.pseudoElementCSS|.
+   * Additionally, if |element| doesn't have an id it will be given one in
+   * |this.html|.
+   *
+   * @param {Element} element The Element whose pseudo elements will be
+   *     processed.
+   * @private
+   */
+  processPseudoElements(element) {
+    var win = element.ownerDocument.defaultView;
+    for (var i = 0, pseudo; pseudo = this.PSEUDO_ELEMENTS[i]; i++) {
+      var style = win.getComputedStyle(element, pseudo);
+      if (style.content) {
+        var nestingDepth = this.windowDepth(win);
+        var escapedQuote = this.escapedCharacter('"', nestingDepth);
+        var styleText = style.cssText.replace(/"/g, escapedQuote);
+        var id;
+        if (!element.attributes.id) {
+          id = this.generateId(element.ownerDocument);
+          this.processSimpleAttribute(win, 'id', id);
+        } else {
+          id = element.attributes.id.value;
+        }
+        this.pseudoElementCSS.push(
+          '#' + id + ':' + pseudo + '{' + styleText + '} '
+        );
       }
     }
   }
@@ -344,6 +400,25 @@ var HTMLSerializer = class {
    */
   windowDepth(win) {
     return this.iframeFullyQualifiedName(win).split('.').length - 1;
+  }
+
+  /**
+   * Create a function that will generate strings which can be used as
+   * ids.
+   *
+   * @return {Function<Document>} A funtion that generates a valid id each time
+   *     it is called.
+   */
+  generateIdGenerator() {
+    var counter = 0;
+    function idGenerator(doc) {
+      var id;
+      do {
+        id = 'snap-it' + counter++;
+      } while (doc.getElementById(id));
+      return id;
+    }
+    return idGenerator;
   }
 
   /**

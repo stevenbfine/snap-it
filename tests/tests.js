@@ -361,3 +361,70 @@ QUnit.test('processText: nested escaped characters', function(assert) {
     '&amp;amp;lt;div&amp;amp;gt; with &amp;amp;#39;&amp;amp;amp;&amp;amp;quot;'
   );
 });
+
+QUnit.test('processPseudoElements: element with id', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var element = document.createElement('div');
+  element.setAttribute('id', 'myID');
+  var style = document.createElement('style');
+  style.appendChild(document.createTextNode('div::before{content:"test";}'));
+  fixture.appendChild(style);
+  fixture.appendChild(element);
+  serializer.processPseudoElements(element);
+  var styleText = window.getComputedStyle(element, ':before').cssText;
+  assert.equal(serializer.html.length, 0);
+  assert.equal(serializer.pseudoElementCSS.length, 1);
+  assert.equal(serializer.pseudoElementCSS[0], `#myID::before{${styleText}} `);
+});
+
+QUnit.test('processPseudoElements: element without id', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var element = document.createElement('div');
+  var style = document.createElement('style');
+  style.appendChild(document.createTextNode('div::after{content:"test";}'));
+  fixture.appendChild(style);
+  fixture.appendChild(element);
+  serializer.processPseudoElements(element);
+  var styleText = window.getComputedStyle(element, ':after').cssText;
+  assert.equal(serializer.html[0], 'id="snap-it0" ');
+  assert.equal(serializer.pseudoElementCSS.length, 1);
+  assert.equal(
+    serializer.pseudoElementCSS[0],
+    `#snap-it0::after{${styleText}} `
+  );
+});
+
+QUnit.test('processPseudoElements: generated id exists', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var span = document.createElement('span');
+  span.setAttribute('id', 'snap-it0');
+  var div = document.createElement('div');
+  var style = document.createElement('style');
+  style.appendChild(document.createTextNode('div::after{content:"test";}'));
+  fixture.appendChild(style);
+  fixture.appendChild(span);
+  fixture.appendChild(div);
+  serializer.processPseudoElements(div);
+  var styleText = window.getComputedStyle(div, ':after').cssText;
+  assert.equal(serializer.html[0], 'id="snap-it1" ');
+  assert.equal(serializer.pseudoElementCSS.length, 1);
+  assert.equal(
+    serializer.pseudoElementCSS[0],
+    `#snap-it1::after{${styleText}} `
+  );
+});
+
+QUnit.test('generateIdGenerator', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  fixture.appendChild(div);
+  var generateId = serializer.generateIdGenerator();
+  assert.equal(generateId(document), 'snap-it0');
+  assert.equal(generateId(document), 'snap-it1');
+  div.setAttribute('id', 'snap-it2');
+  assert.equal(generateId(document), 'snap-it3');
+});
