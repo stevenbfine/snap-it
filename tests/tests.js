@@ -388,18 +388,18 @@ QUnit.test('processPseudoElements: element without id', function(assert) {
   fixture.appendChild(element);
   serializer.processPseudoElements(element);
   var styleText = window.getComputedStyle(element, ':after').cssText;
-  assert.equal(serializer.html[0], 'id="id0" ');
+  assert.equal(serializer.html[0], 'id="snap-it0" ');
   assert.equal(serializer.pseudoElementCSS.length, 1);
-  assert.equal(serializer.pseudoElementCSS[0], `#id0::after{${styleText}} `);
+  assert.equal(serializer.pseudoElementCSS[0], `#snap-it0::after{${styleText}} `);
 });
 
 QUnit.test('generateIDGenerator', function(assert) {
   var serializer = new HTMLSerializer();
   var generateID1 = serializer.generateIDGenerator();
   var generateID2 = serializer.generateIDGenerator();
-  assert.equal(generateID1(), 'id0');
-  assert.equal(generateID1(), 'id1');
-  assert.equal(generateID2(), 'id0');
-  assert.equal(generateID2(), 'id1');
+  assert.equal(generateID1(), 'snap-it0');
+  assert.equal(generateID1(), 'snap-it1');
+  assert.equal(generateID2(), 'snap-it0');
+  assert.equal(generateID2(), 'snap-it1');
 
 });
