@@ -81,12 +81,6 @@ var HTMLSerializer = class {
     this.frameHoles = {};
 
     /**
-     * @private {number} The index in |this.html| where a style element should
-     *     be placed that defines all pseudo elements.
-     */
-    this.pseudoElementStyleIndex;
-
-    /**
      * @private {Array<string>} Each element of this array is a string
      *     representing CSS that defines a single pseudo element.
      */
@@ -122,11 +116,6 @@ var HTMLSerializer = class {
       this.processPseudoElements(element);
       this.html.push('>');
 
-      if (tagName == 'HEAD') {
-        this.pseudoElementStyleIndex = this.html.length;
-        this.html.push('');
-      }
-
       var children = element.childNodes;
       if (children) {
         for (var i = 0, child; child = children[i]; i++) {
@@ -148,6 +137,7 @@ var HTMLSerializer = class {
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
+    this.html.push(''); // Entry where pseudo element style tag will go.
     var nodes = doc.childNodes;
     for (var i = 0, node; node = nodes[i]; i++) {
       if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
@@ -155,7 +145,7 @@ var HTMLSerializer = class {
       }
     }
     var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
-    this.html[this.pseudoElementStyleIndex] = pseudoElements;
+    this.html[1] = pseudoElements;
   }
 
   /**
