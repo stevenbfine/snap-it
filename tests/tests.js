@@ -417,12 +417,14 @@ QUnit.test('processPseudoElements: generated id exists', function(assert) {
   );
 });
 
-QUnit.test('generateIDGenerator', function(assert) {
+QUnit.test('generateIdGenerator', function(assert) {
   var serializer = new HTMLSerializer();
-  var generateID1 = serializer.generateIDGenerator();
-  var generateID2 = serializer.generateIDGenerator();
-  assert.equal(generateID1(), 'snap-it0');
-  assert.equal(generateID1(), 'snap-it1');
-  assert.equal(generateID2(), 'snap-it0');
-  assert.equal(generateID2(), 'snap-it1');
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  fixture.appendChild(div);
+  var generateId = serializer.generateIdGenerator();
+  assert.equal(generateId(document), 'snap-it0');
+  assert.equal(generateId(document), 'snap-it1');
+  div.setAttribute('id', 'snap-it2');
+  assert.equal(generateId(document), 'snap-it3');
 });

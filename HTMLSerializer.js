@@ -90,7 +90,7 @@ var HTMLSerializer = class {
      * @private {Function} A funtion that generates a unique string each time it
      * is called, which can be used as an element id.
      */
-    this.generateId = this.generateIDGenerator();
+    this.generateId = this.generateIdGenerator();
   }
 
   /**
@@ -169,9 +169,7 @@ var HTMLSerializer = class {
         var styleText = style.cssText.replace(/"/g, escapedQuote);
         var id;
         if (!element.attributes.id) {
-          do {
-            id = this.generateId();
-          } while (element.ownerDocument.getElementById(id));
+          id = this.generateId(element.ownerDocument);
           this.processSimpleAttribute(win, 'id', id);
         } else {
           id = element.attributes.id.value;
@@ -408,13 +406,17 @@ var HTMLSerializer = class {
    * Create a function that will generate strings which can be used as
    * ids.
    *
-   * @return {Function} A funtion that generates a unique string each time it is
-   *     called.
+   * @return {Function<Document>} A funtion that generates a valid id each time
+   *     it is called.
    */
-  generateIDGenerator() {
+  generateIdGenerator() {
     var counter = 0;
-    function idGenerator() {
-      return 'snap-it' + counter++;
+    function idGenerator(doc) {
+      var id;
+      do {
+        id = 'snap-it' + counter++;
+      } while (doc.getElementById(id));
+      return id;
     }
     return idGenerator;
   }
