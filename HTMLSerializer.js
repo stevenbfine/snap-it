@@ -170,7 +170,7 @@ var HTMLSerializer = class {
         if (!element.attributes.id) {
           do {
             id = this.generateId();
-          } while (document.getElementById(id));
+          } while (element.ownerDocument.getElementById(id));
           this.processSimpleAttribute(win, 'id', id);
         } else {
           id = element.attributes.id.value;
