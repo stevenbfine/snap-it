@@ -168,7 +168,9 @@ var HTMLSerializer = class {
         var styleText = style.cssText.replace(/"/g, escapedQuote);
         var id;
         if (!element.attributes.id) {
-          id = this.generateId();
+          do {
+            id = this.generateId();
+          } while (document.getElementById(id));
           this.processSimpleAttribute(win, 'id', id);
         } else {
           id = element.attributes.id.value;
@@ -411,7 +413,7 @@ var HTMLSerializer = class {
   generateIDGenerator() {
     var counter = 0;
     function idGenerator() {
-      return 'id' + counter++;
+      return 'snap-it' + counter++;
     }
     return idGenerator;
   }
