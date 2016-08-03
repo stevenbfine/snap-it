@@ -401,7 +401,7 @@ var HTMLSerializer = class {
    */
   escapedUnicodeString(str) {
     return str.replace(/[\s\S]/g, function(char) {
-      var unicode = char.charCodeAt();
+      var unicode = char.codePointAt();
       if (unicode < 128) {
         return char;
       } else {
