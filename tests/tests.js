@@ -428,3 +428,12 @@ QUnit.test('generateIdGenerator', function(assert) {
   div.setAttribute('id', 'snap-it2');
   assert.equal(generateId(document), 'snap-it3');
 });
+
+QUnit.test('escapedUnicodeString', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode('i \u2665 \u0073f'));
+  var string = div.childNodes[0].textContent;
+  assert.equal(serializer.escapedUnicodeString(string), 'i &#9829; sf');
+});
