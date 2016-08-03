@@ -434,18 +434,19 @@ var HTMLSerializer = class {
       var index = Object.keys(this.srcHoles)[0];
       var src = this.srcHoles[index];
       delete this.srcHoles[index];
+      var serializer = this;
       fetch(src).then(function(response) {
         return response.blob();
       }).then(function(blob) {
         var reader = new FileReader();
         reader.onload = function(e) {
-          this.html[index] = e.target.result;
-          this.fillSrcHoles(callback);
+          serializer.html[index] = e.target.result;
+          serializer.fillSrcHoles(callback);
         }
         reader.readAsDataURL(blob);
       }).catch(function(error) {
         console.log(error);
-        this.fillSrcHoles(callback);
+        serializer.fillSrcHoles(callback);
       });
     }
   }
