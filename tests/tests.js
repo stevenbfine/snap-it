@@ -219,7 +219,7 @@ QUnit.test('processTree: single node', function(assert) {
   node.appendChild(document.createTextNode('test'));
   fixture.appendChild(node);
   var serializer = new HTMLSerializer();
-  serializer.processTree(node, 0);
+  serializer.processTree(node);
   assert.equal(Object.keys(serializer.srcHoles).length, 0);
   assert.equal(Object.keys(serializer.frameHoles).length, 0);
 });
