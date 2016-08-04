@@ -165,6 +165,7 @@ var HTMLSerializer = class {
         var nestingDepth = this.windowDepth(win);
         var escapedQuote = this.escapedCharacter('"', nestingDepth);
         var styleText = style.cssText.replace(/"/g, escapedQuote);
+        styleText = this.escapedUnicodeString(styleText);
         var id;
         if (!element.attributes.id) {
           id = this.generateId(element.ownerDocument);
@@ -200,6 +201,7 @@ var HTMLSerializer = class {
         text = text.replace(regExp, escapedCharacter);
       }
     }
+    text = this.escapedUnicodeString(text);
     this.html.push(text);
   }
 
@@ -388,6 +390,24 @@ var HTMLSerializer = class {
       var arr = 'amp;'.repeat(depth-1);
       return '&' + arr + this.CHARACTER_ESCAPING_MAP[char].slice(1);
     }
+  }
+
+  /**
+   * Returns the string that is passed as an argument with all non ascii unicode
+   * characters escaped.
+   *
+   * @param {string} str The string that should have its characters escaped.
+   * @return {string} The correctly escaped string.
+   */
+  escapedUnicodeString(str) {
+    return str.replace(/[\s\S]/g, function(char) {
+      var unicode = char.codePointAt();
+      if (unicode < 128) {
+        return char;
+      } else {
+        return '&#' + unicode + ';';
+      }
+    });
   }
 
   /**
