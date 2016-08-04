@@ -98,11 +98,9 @@ var HTMLSerializer = class {
    * eventually be converted into an html text file.
    *
    * @param {Element} element The Element to serialize.
-   * @param {number} depth The number of parents this element has in the current
-   *     frame.
    * @private
    */ 
-  processTree(element, depth) {
+  processTree(element) {
     var tagName = element.tagName;
     if (!tagName && element.nodeType != Node.TEXT_NODE) {
       // Ignore elements that don't have tags and are not text.
@@ -119,7 +117,7 @@ var HTMLSerializer = class {
       var children = element.childNodes;
       if (children) {
         for (var i = 0, child; child = children[i]; i++) {
-          this.processTree(child, depth+1);
+          this.processTree(child);
         }
       }
 
