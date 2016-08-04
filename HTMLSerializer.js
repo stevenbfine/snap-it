@@ -140,7 +140,7 @@ var HTMLSerializer = class {
     var nodes = doc.childNodes;
     for (var i = 0, node; node = nodes[i]; i++) {
       if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
-        this.processTree(node, 0);
+        this.processTree(node);
       }
     }
     var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
