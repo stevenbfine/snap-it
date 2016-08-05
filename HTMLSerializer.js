@@ -60,7 +60,7 @@ var HTMLSerializer = class {
 
     /**
      * @public {Array<string>} This array represents the serialized html that
-     *     makes up an element or document. 
+     *     makes up a node or document. 
      */
     this.html = [];
 
@@ -94,27 +94,27 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Takes an html element, and populates this object's fields such that it can
+   * Takes an html node, and populates this object's fields such that it can
    * eventually be converted into an html text file.
    *
-   * @param {Element} element The Element to serialize.
+   * @param {Node} node The Node to serialize.
    * @private
    */ 
-  processTree(element) {
-    var tagName = element.tagName;
-    if (!tagName && element.nodeType != Node.TEXT_NODE) {
-      // Ignore elements that don't have tags and are not text.
+  processTree(node) {
+    var tagName = node.tagName;
+    if (!tagName && node.nodeType != Node.TEXT_NODE) {
+      // Ignore nodes that don't have tags and are not text.
     } else if (tagName && this.FILTERED_TAGS.has(tagName)) {
-      // Filter out elements that are in filteredTags.
-    } else if (element.nodeType == Node.TEXT_NODE) {
-      this.processText(element);
+      // Filter out nodes that are in filteredTags.
+    } else if (node.nodeType == Node.TEXT_NODE) {
+      this.processText(node);
     } else {
       this.html.push(`<${tagName.toLowerCase()} `);
-      this.processAttributes(element);
-      this.processPseudoElements(element);
+      this.processAttributes(node);
+      this.processPseudoElements(node);
       this.html.push('>');
 
-      var children = element.childNodes;
+      var children = node.childNodes;
       if (children) {
         for (var i = 0, child; child = children[i]; i++) {
           this.processTree(child);
