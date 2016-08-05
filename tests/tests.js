@@ -435,7 +435,10 @@ QUnit.test('escapedUnicodeString: html', function(assert) {
   var div = document.createElement('div');
   div.appendChild(document.createTextNode('i \u2665 \u0073f'));
   var string = div.childNodes[0].textContent;
-  assert.equal(serializer.escapedUnicodeString(string, true), 'i &#9829; sf');
+  assert.equal(
+    serializer.escapedUnicodeString(string, serializer.INPUT_TEXT_TYPE.HTML),
+    'i &#9829; sf'
+  );
 });
 
 QUnit.test('escapedUnicodeString: css', function(assert) {
@@ -444,5 +447,8 @@ QUnit.test('escapedUnicodeString: css', function(assert) {
   var div = document.createElement('div');
   div.appendChild(document.createTextNode('i \u2665 \u0073f'));
   var string = div.childNodes[0].textContent;
-  assert.equal(serializer.escapedUnicodeString(string, false), 'i \\2665 sf');
+  assert.equal(
+    serializer.escapedUnicodeString(string, serializer.INPUT_TEXT_TYPE.CSS),
+    'i \\2665 sf'
+  );
 });
