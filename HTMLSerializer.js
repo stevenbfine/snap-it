@@ -165,7 +165,7 @@ var HTMLSerializer = class {
         var nestingDepth = this.windowDepth(win);
         var escapedQuote = this.escapedCharacter('"', nestingDepth);
         var styleText = style.cssText.replace(/"/g, escapedQuote);
-        styleText = this.escapedUnicodeString(styleText);
+        styleText = this.escapedUnicodeString(styleText, false);
         var id;
         if (!element.attributes.id) {
           id = this.generateId(element.ownerDocument);
@@ -201,7 +201,7 @@ var HTMLSerializer = class {
         text = text.replace(regExp, escapedCharacter);
       }
     }
-    text = this.escapedUnicodeString(text);
+    text = this.escapedUnicodeString(text, true);
     this.html.push(text);
   }
 
@@ -397,15 +397,19 @@ var HTMLSerializer = class {
    * characters escaped.
    *
    * @param {string} str The string that should have its characters escaped.
+   * @param {boolean} isHTML true if the string being escaped is in html. false
+   *     if css.
    * @return {string} The correctly escaped string.
    */
-  escapedUnicodeString(str) {
+  escapedUnicodeString(str, isHTML) {
     return str.replace(/[\s\S]/g, function(char) {
       var unicode = char.codePointAt();
       if (unicode < 128) {
         return char;
-      } else {
+      } else if (isHTML) {
         return '&#' + unicode + ';';
+      } else {
+        return '\\' + unicode.toString(16);
       }
     });
   }
