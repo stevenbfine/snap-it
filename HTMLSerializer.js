@@ -91,6 +91,31 @@ var HTMLSerializer = class {
     this.frameHoles = {};
 
     /**
+     * @private {Array<string>} Each element of |this.crossOriginStyleSheets|
+     *     contains a url to a stylesheet that does not have the same origin
+     *     as the webpage being serialized.
+     */
+    this.crossOriginStyleSheets = [];
+
+    /**
+     * @private {Array<string>} Each element of |this.fontFaceCSS| will contain
+     *     a CSS declaration of a different externally loaded font.
+     */
+    this.fontFaceCSS = [];
+
+    /**
+     * @private {Array<string>} Each element of |this.fontFamilyCSS| will
+     *     contain a different font-family name from |this.fontFaceCSS|.
+     */
+    this.fontFamilyCSS = [];
+
+    /**
+     * @private {number} The index in |this.html| where the style element
+     *     containing the fonts will go.
+     */
+    this.fontPlaceHolderIndex;
+
+    /**
      * @private {Array<string>} Each element of this array is a string
      *     representing CSS that defines a single pseudo element.
      */
@@ -145,8 +170,14 @@ var HTMLSerializer = class {
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
+
+    this.fontPlaceHolderIndex = this.html.length;
+    this.html.push(''); // Entry where the font style tag will go.
+    this.loadFonts(doc);
+
     var stylePlaceholderIndex = this.html.length;
     this.html.push(''); // Entry where pseudo element style tag will go.
+
     var nodes = doc.childNodes;
     for (var i = 0, node; node = nodes[i]; i++) {
       if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
@@ -353,6 +384,81 @@ var HTMLSerializer = class {
   }
 
   /**
+   * Load all external fonts.
+   *
+   * @param {Document} doc The document being serialized.
+   */
+  loadFonts(doc) {
+    for (var i = 0, styleSheet; styleSheet = doc.styleSheets[i]; i++) {
+      if (styleSheet.cssRules) {
+        for (var j = 0, rule; rule = styleSheet.cssRules[j]; j++) {
+          this.parseCSSForFonts(doc.defaultView, styleSheet.href, rule.cssText);
+        }
+      } else {
+        this.crossOriginStyleSheets.push(styleSheet.href);
+      }
+    }
+  }
+
+  /**
+   * Takes a string representing CSS and parses it to find any fonts that are
+   * declared.  If any fonts are declared, it processes them so that they
+   * can be used in the serialized document and adds them to |this.fontFaceCSS|
+   * and |this.fontFamilyCSS|.
+   *
+   * @param {Window} win The window of the document being serialized.
+   * @param {string} href The url at which the CSS stylesheet is located.
+   * @param {string} css The CSS text.
+   */
+  parseCSSForFonts(win, href, css) {
+    var serializer = this;
+    var fonts = css.match(/@font-face *?\{.*?\}/g);
+    if (fonts) {
+      for (var i = 0; i < fonts.length; i++) {
+        var font = fonts[i].replace(/url\(".*?"\)/g, function(url) {
+          var url = url.slice(5,url.length-2);
+          return `url("${serializer.fullyQualifiedFontURL(href, url)}")`;
+        });
+        var fontFamily = font.match(/font-family *?: *?(.*?) *?;/)[1];
+        
+        var nestingDepth = this.windowDepth(win);
+        var escapedQuote = this.escapedCharacter('"', nestingDepth);
+        font = font.replace(/"/g, escapedQuote);
+        fontFamily = fontFamily.replace(/"/g, escapedQuote);
+        this.fontFaceCSS.push(font);
+        this.fontFamilyCSS.push(fontFamily);
+      }
+    }
+  }
+
+  /**
+   * Computes the fully qualified url at which a font can be loaded.
+   *
+   * @param {string} href The url at which the CSS stylesheet containing the
+   *     font is located.
+   * @param {string} url The url listed in the font declaration.
+   */
+  fullyQualifiedFontURL(href, url) {
+    if (url.startsWith('/')) {
+      var hrefURL = new URL(href);
+      return hrefURL.protocol + '//' + hrefURL.host + url;
+    } else if (url.startsWith('./')) {
+      href = href.slice(0, href.lastIndexOf('/'));
+      url = url.slice(1, url.length);
+      return href + url;
+    } else if (url.startsWith('../')) {
+      href = href.slice(0, href.lastIndexOf('/'));
+      while (url.startsWith('../')) {
+        href = href.slice(0, href.lastIndexOf('/'));
+        url = url.slice(3, url.length);
+      }
+      return href + '/' + url;
+    } else {
+      return url;
+    }
+  }
+
+  /**
    * Computes the index of the window in its parent's array of frames.
    *
    * @param {Window} childWindow The window to use in the calculation.
@@ -455,6 +561,45 @@ var HTMLSerializer = class {
       return id;
     }
     return idGenerator;
+  }
+
+  /**
+   * Asynchronously fill in any holes in |this.html|.
+   *
+   * @param {Document} doc The Document being serialized.
+   * @param {Function} callback The callback function.
+   */
+  fillHolesAsync(doc, callback) {
+    this.fillFontHoles(doc, callback);
+  }
+
+  /**
+   * Take all of the cross origin stylesheets, process their font declarations,
+   * and add them to |this.html|. When finished, call |this.fillSrcHoles|.
+   *
+   * @param {Document} doc The Document being serialized.
+   * @param {Function} callback The callback function.
+   */
+  fillFontHoles(doc, callback) {
+    if (this.crossOriginStyleSheets.length == 0) {
+      var fontFaces = this.fontFaceCSS.join('');
+      var fontFamilies = `body{font-family:${this.fontFamilyCSS.join(',')};}`;
+      var fontStyleTag = `<style>${fontFaces}${fontFamilies}</style>`;
+      this.html[this.fontPlaceHolderIndex] = fontStyleTag;
+      this.fillSrcHoles(callback);
+    } else {
+      var styleSheetSrc = this.crossOriginStyleSheets.shift();
+      var serializer = this;
+      fetch(styleSheetSrc).then(function(response) {;
+        return response.text();
+      }).then(function(css) {
+          serializer.parseCSSForFonts(doc.defaultView, styleSheetSrc, css);
+          serializer.fillFontHoles(doc, callback);
+      }).catch(function(error) {
+        console.log(error);
+        serializer.fillFontHoles(doc, callback);
+      });
+    }
   }
 
   /**

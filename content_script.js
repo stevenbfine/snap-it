@@ -14,4 +14,4 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
 
 var htmlSerializer = new HTMLSerializer();
 htmlSerializer.processDocument(document);
-htmlSerializer.fillSrcHoles(sendHTMLSerializerToExtension);
+htmlSerializer.fillHolesAsync(document, sendHTMLSerializerToExtension);
