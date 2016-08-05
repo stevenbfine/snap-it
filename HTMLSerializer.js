@@ -61,6 +61,7 @@ var HTMLSerializer = class {
     /**
      * @public {Object<string, number>} An enum representing different types
      *     text.
+     * @const
      */
     this.INPUT_TEXT_TYPE = {
       HTML : 0,
