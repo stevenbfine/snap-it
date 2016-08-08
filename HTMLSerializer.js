@@ -98,16 +98,10 @@ var HTMLSerializer = class {
     this.crossOriginStyleSheets = [];
 
     /**
-     * @private {Array<string>} Each element of |this.fontFaceCSS| will contain
+     * @private {Array<string>} Each element of |this.fontCSS| will contain
      *     a CSS declaration of a different externally loaded font.
      */
-    this.fontFaceCSS = [];
-
-    /**
-     * @private {Array<string>} Each element of |this.fontFamilyCSS| will
-     *     contain a different font-family name from |this.fontFaceCSS|.
-     */
-    this.fontFamilyCSS = [];
+    this.fontCSS = [];
 
     /**
      * @private {number} The index in |this.html| where the style element
@@ -403,8 +397,7 @@ var HTMLSerializer = class {
   /**
    * Takes a string representing CSS and parses it to find any fonts that are
    * declared.  If any fonts are declared, it processes them so that they
-   * can be used in the serialized document and adds them to |this.fontFaceCSS|
-   * and |this.fontFamilyCSS|.
+   * can be used in the serialized document and adds them to |this.fontCSS|.
    *
    * @param {Window} win The window of the document being serialized.
    * @param {string} href The url at which the CSS stylesheet is located.
@@ -419,14 +412,11 @@ var HTMLSerializer = class {
           var url = url.slice(5,url.length-2);
           return `url("${serializer.fullyQualifiedFontURL(href, url)}")`;
         });
-        var fontFamily = font.match(/font-family *?: *?(.*?) *?;/)[1];
         
         var nestingDepth = this.windowDepth(win);
         var escapedQuote = this.escapedCharacter('"', nestingDepth);
         font = font.replace(/"/g, escapedQuote);
-        fontFamily = fontFamily.replace(/"/g, escapedQuote);
-        this.fontFaceCSS.push(font);
-        this.fontFamilyCSS.push(fontFamily);
+        this.fontCSS.push(font);
       }
     }
   }
@@ -575,17 +565,15 @@ var HTMLSerializer = class {
 
   /**
    * Take all of the cross origin stylesheets, process their font declarations,
-   * and add them to |this.html|. When finished, call |this.fillSrcHoles|.
+   * and add them to |this.html|. When finished, calls |this.fillSrcHoles|.
    *
    * @param {Document} doc The Document being serialized.
    * @param {Function} callback The callback function.
    */
   fillFontHoles(doc, callback) {
     if (this.crossOriginStyleSheets.length == 0) {
-      var fontFaces = this.fontFaceCSS.join('');
-      var fontFamilies = `body{font-family:${this.fontFamilyCSS.join(',')};}`;
-      var fontStyleTag = `<style>${fontFaces}${fontFamilies}</style>`;
-      this.html[this.fontPlaceHolderIndex] = fontStyleTag;
+      var fonts = `<style>${this.fontCSS.join('')}</style>`;
+      this.html[this.fontPlaceHolderIndex] = fonts;
       this.fillSrcHoles(callback);
     } else {
       var styleSheetSrc = this.crossOriginStyleSheets.shift();
