@@ -59,6 +59,16 @@ var HTMLSerializer = class {
     };
 
     /**
+     * @public {Object<string, number>} An enum representing different types of
+     *     text.
+     * @const
+     */
+    this.INPUT_TEXT_TYPE = {
+      HTML : 0,
+      CSS : 1
+    };
+
+    /**
      * @public {Array<string>} This array represents the serialized html that
      *     makes up a node or document. 
      */
@@ -165,7 +175,10 @@ var HTMLSerializer = class {
         var nestingDepth = this.windowDepth(win);
         var escapedQuote = this.escapedCharacter('"', nestingDepth);
         var styleText = style.cssText.replace(/"/g, escapedQuote);
-        styleText = this.escapedUnicodeString(styleText);
+        styleText = this.escapedUnicodeString(
+          styleText,
+          this.INPUT_TEXT_TYPE.CSS
+        );
         var id;
         if (!element.attributes.id) {
           id = this.generateId(element.ownerDocument);
@@ -201,7 +214,7 @@ var HTMLSerializer = class {
         text = text.replace(regExp, escapedCharacter);
       }
     }
-    text = this.escapedUnicodeString(text);
+    text = this.escapedUnicodeString(text, this.INPUT_TEXT_TYPE.HTML);
     this.html.push(text);
   }
 
@@ -397,15 +410,20 @@ var HTMLSerializer = class {
    * characters escaped.
    *
    * @param {string} str The string that should have its characters escaped.
+   * @param {number} textType A possible value of |this.INPUT_TEXT_TYPE| which
+   *     represents the type of text being escaped.
    * @return {string} The correctly escaped string.
    */
-  escapedUnicodeString(str) {
+  escapedUnicodeString(str, textType) {
+    var serializer = this;
     return str.replace(/[\s\S]/g, function(char) {
       var unicode = char.codePointAt();
       if (unicode < 128) {
         return char;
-      } else {
+      } else if (textType == serializer.INPUT_TEXT_TYPE.HTML) {
         return '&#' + unicode + ';';
+      } else {
+        return '\\' + unicode.toString(16);
       }
     });
   }
