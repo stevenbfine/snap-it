@@ -59,7 +59,7 @@ var HTMLSerializer = class {
     };
 
     /**
-     * @public {Object<string, number>} An enum representing different types
+     * @public {Object<string, number>} An enum representing different types of
      *     text.
      * @const
      */
