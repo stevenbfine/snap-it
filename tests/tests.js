@@ -452,3 +452,51 @@ QUnit.test('escapedUnicodeString: css', function(assert) {
     'i \\2665 sf'
   );
 });
+
+QUnit.test('fullyQualifiedFontURL', function(assert) {
+  var serializer = new HTMLSerializer();
+  var href = 'http://www.example.com/path/to/';
+  var url1 = '/hello/world/';
+  assert.equal(
+    serializer.fullyQualifiedFontURL(href, url1),
+    'http://www.example.com/hello/world/'
+  );
+  var url2 = './hello/world/';
+  assert.equal(
+    serializer.fullyQualifiedFontURL(href, url2),
+    'http://www.example.com/path/to/hello/world/'
+  );
+  var url3 = '../hello/world/';
+  assert.equal(
+    serializer.fullyQualifiedFontURL(href, url3),
+    'http://www.example.com/path/hello/world/'
+  );
+  var url4 = 'http://www.google.com/';
+  assert.equal(
+    serializer.fullyQualifiedFontURL(href, url4),
+    'http://www.google.com/'
+  );
+});
+
+QUnit.test('processCSSFonts', function(assert) {
+  var serializer = new HTMLSerializer();
+  var cssText = 'body{color:red;}' +
+      '@font-face{font-family:Font;src:url("/hello/")}';
+  var href = 'http://www.example.com/';
+  serializer.processCSSFonts(window, href, cssText);
+  assert.equal(
+    serializer.fontCSS[0],
+    '@font-face{font-family:Font;src:url("http://www.example.com/hello/")}'
+  );
+});
+
+QUnit.test('loadFonts', function(assert) {
+  var serializer = new HTMLSerializer();
+  serializer.loadFonts(document);
+  assert.equal(serializer.html[0], '');
+  assert.equal(serializer.fontPlaceHolderIndex, 0);
+  assert.equal(
+    serializer.crossOriginStyleSheets[0],
+    'https://code.jquery.com/qunit/qunit-2.0.0.css'
+  );
+});
