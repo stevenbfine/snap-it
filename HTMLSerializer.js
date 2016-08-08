@@ -164,11 +164,7 @@ var HTMLSerializer = class {
    */ 
   processDocument(doc) {
     this.html.push('<!DOCTYPE html>\n');
-
-    this.fontPlaceHolderIndex = this.html.length;
-    this.html.push(''); // Entry where the font style tag will go.
     this.loadFonts(doc);
-
     var stylePlaceholderIndex = this.html.length;
     this.html.push(''); // Entry where pseudo element style tag will go.
 
@@ -378,15 +374,18 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Load all external fonts.
+   * Load all external fonts, and add an entry to |this.html| at index
+   * |this.fontPlaceHolderIndex|.
    *
-   * @param {Document} doc The document being serialized.
+   * @param {Document} doc The Document being serialized.
    */
   loadFonts(doc) {
+    this.fontPlaceHolderIndex = this.html.length;
+    this.html.push(''); // Entry where the font style tag will go.
     for (var i = 0, styleSheet; styleSheet = doc.styleSheets[i]; i++) {
       if (styleSheet.cssRules) {
         for (var j = 0, rule; rule = styleSheet.cssRules[j]; j++) {
-          this.parseCSSForFonts(doc.defaultView, styleSheet.href, rule.cssText);
+          this.processCSSFonts(doc.defaultView, styleSheet.href, rule.cssText);
         }
       } else {
         this.crossOriginStyleSheets.push(styleSheet.href);
@@ -399,23 +398,23 @@ var HTMLSerializer = class {
    * declared.  If any fonts are declared, it processes them so that they
    * can be used in the serialized document and adds them to |this.fontCSS|.
    *
-   * @param {Window} win The window of the document being serialized.
+   * @param {Window} win The Window of the Document being serialized.
    * @param {string} href The url at which the CSS stylesheet is located.
    * @param {string} css The CSS text.
    */
-  parseCSSForFonts(win, href, css) {
+  processCSSFonts(win, href, css) {
     var serializer = this;
-    var fonts = css.match(/@font-face *?\{.*?\}/g);
+    var fonts = css.match(/@font-face *?{.*?}/g);
     if (fonts) {
+      var nestingDepth = this.windowDepth(win);
+      var escapedQuote = this.escapedCharacter('"', nestingDepth);
       for (var i = 0; i < fonts.length; i++) {
-        var font = fonts[i].replace(/url\(".*?"\)/g, function(url) {
-          var url = url.slice(5,url.length-2);
-          return `url("${serializer.fullyQualifiedFontURL(href, url)}")`;
-        });
-        
-        var nestingDepth = this.windowDepth(win);
-        var escapedQuote = this.escapedCharacter('"', nestingDepth);
-        font = font.replace(/"/g, escapedQuote);
+        // Convert url specified in font to fully qualified url.
+        var font = fonts[i].replace(/url\("(.*?)"\)/g, function(match, url) {
+          url = serializer.fullyQualifiedFontURL(href, url);
+          return 'url("' + url + '")';
+        }).
+        replace(/"/g, escapedQuote);
         this.fontCSS.push(font);
       }
     }
@@ -581,7 +580,7 @@ var HTMLSerializer = class {
       fetch(styleSheetSrc).then(function(response) {;
         return response.text();
       }).then(function(css) {
-          serializer.parseCSSForFonts(doc.defaultView, styleSheetSrc, css);
+          serializer.processCSSFonts(doc.defaultView, styleSheetSrc, css);
           serializer.fillFontHoles(doc, callback);
       }).catch(function(error) {
         console.log(error);
