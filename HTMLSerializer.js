@@ -428,9 +428,9 @@ var HTMLSerializer = class {
    * @param {string} url The url listed in the font declaration.
    */
   fullyQualifiedFontURL(href, url) {
+    var hrefURL = new URL(href);
     if (url.startsWith('/')) {
-      var hrefURL = new URL(href);
-      return hrefURL.protocol + '//' + hrefURL.host + url;
+      return hrefURL.origin + url;
     } else if (url.startsWith('./')) {
       href = href.slice(0, href.lastIndexOf('/'));
       url = url.slice(1, url.length);
