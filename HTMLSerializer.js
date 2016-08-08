@@ -560,23 +560,25 @@ var HTMLSerializer = class {
    *     all asynchronous processing is finished.
    */
   fillHolesAsync(doc, callback) {
-    this.fillFontHoles(doc, callback);
+    var serializer = this;
+    this.fillFontHoles(doc, function() {
+      serializer.fillSrcHoles(callback);
+    });
   }
 
   /**
    * Takes all of the cross origin stylesheets, processes their font
-   * declarations, and adds them to |this.html|. When finished, calls
-   * |this.fillSrcHoles|.
+   * declarations, and adds them to |this.html|. Calls the callback when
+   *     complete.
    *
    * @param {Document} doc The Document being serialized.
-   * @param {Function} callback The callback function, which will be called when
-   *     all asynchronous processing is finished.
+   * @param {Function} callback The callback function.
    */
   fillFontHoles(doc, callback) {
     if (this.crossOriginStyleSheets.length == 0) {
       var fonts = `<style>${this.fontCSS.join('')}</style>`;
       this.html[this.fontPlaceHolderIndex] = fonts;
-      this.fillSrcHoles(callback);
+      callback();
     } else {
       var styleSheetSrc = this.crossOriginStyleSheets.shift();
       var serializer = this;
