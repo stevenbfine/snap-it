@@ -455,7 +455,7 @@ QUnit.test('escapedUnicodeString: css', function(assert) {
 
 QUnit.test('fullyQualifiedFontURL', function(assert) {
   var serializer = new HTMLSerializer();
-  var href = 'http://www.example.com/path/to/';
+  var href = 'http://www.example.com/path/page/';
   var url1 = '/hello/world/';
   assert.equal(
     serializer.fullyQualifiedFontURL(href, url1),
@@ -464,12 +464,12 @@ QUnit.test('fullyQualifiedFontURL', function(assert) {
   var url2 = './hello/world/';
   assert.equal(
     serializer.fullyQualifiedFontURL(href, url2),
-    'http://www.example.com/path/to/hello/world/'
+    'http://www.example.com/path/hello/world/'
   );
   var url3 = '../hello/world/';
   assert.equal(
     serializer.fullyQualifiedFontURL(href, url3),
-    'http://www.example.com/path/hello/world/'
+    'http://www.example.com/hello/world/'
   );
   var url4 = 'http://www.google.com/';
   assert.equal(

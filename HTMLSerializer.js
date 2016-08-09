@@ -422,14 +422,23 @@ var HTMLSerializer = class {
 
   /**
    * Computes the fully qualified url at which a font can be loaded.
+   * TODO(sfine): Make this method sufficiently robust, so that it can replace
+   *              the current implementation of fullyQualifiedURL.
    *
    * @param {string} href The url at which the CSS stylesheet containing the
    *     font is located.
    * @param {string} url The url listed in the font declaration.
    */
   fullyQualifiedFontURL(href, url) {
+    if (href.charAt(href.length-1) == '/') {
+      href = href.slice(0, href.length-1);
+    }
     var hrefURL = new URL(href);
-    if (url.startsWith('/')) {
+    if (url.includes('://')) {
+      return url;
+    } else if (url.startsWith('//')) {
+      return hrefURL.protocol + url;
+    } else if (url.startsWith('/')) {
       return hrefURL.origin + url;
     } else if (url.startsWith('./')) {
       href = href.slice(0, href.lastIndexOf('/'));
@@ -443,7 +452,8 @@ var HTMLSerializer = class {
       }
       return href + '/' + url;
     } else {
-      return url;
+      href = href.slice(0, href.lastIndexOf('/'));
+      return href + '/' + url;
     }
   }
 
