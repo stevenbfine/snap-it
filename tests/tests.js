@@ -165,9 +165,11 @@ QUnit.test('processHoleAttribute: nested window', function(assert) {
 QUnit.test('fullyQualifiedURL', function(assert) {
   var serializer = new HTMLSerializer();
   var iframe = document.createElement('iframe');
-  iframe.setAttribute('src', 'tests.html');
+  iframe.setAttribute('src', 'page.html');
   var url = serializer.fullyQualifiedURL(iframe);
-  assert.equal(window.location.href, url.href);
+  var href = window.location.href;
+  var path = href.slice(0, href.lastIndexOf('/'));
+  assert.equal(path + '/page.html', url.href);
 });
 
 QUnit.test('processSrcHole: top window', function(assert) {
