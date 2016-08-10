@@ -483,15 +483,27 @@ QUnit.test('fullyQualifiedFontURL', function(assert) {
   );
 });
 
-QUnit.test('processCSSFonts', function(assert) {
+QUnit.test('processCSSFonts: no line breaks in declaration', function(assert) {
   var serializer = new HTMLSerializer();
   var cssText = 'body{color:red;}' +
-      '@font-face{font-family:Font;\nsrc:url("/hello/")}';
+      '@font-face{font-family:Font;src:url("/hello/")}';
   var href = 'http://www.example.com/';
   serializer.processCSSFonts(window, href, cssText);
   assert.equal(
     serializer.fontCSS[0],
-    '@font-face{font-family:Font;\nsrc:url("http://www.example.com/hello/")}'
+    '@font-face{font-family:Font;src:url("http://www.example.com/hello/")}'
+  );
+});
+
+QUnit.test('processCSSFonts: line breaks in declaration', function(assert) {
+  var serializer = new HTMLSerializer();
+  var cssText = 'body{color:red;}' +
+      '@font-face { font-family:Font;\nsrc:url("/goodbye/")}';
+  var href = 'http://www.url.com/';
+  serializer.processCSSFonts(window, href, cssText);
+  assert.equal(
+    serializer.fontCSS[0],
+    '@font-face { font-family:Font;\nsrc:url("http://www.url.com/goodbye/")}'
   );
 });
 
