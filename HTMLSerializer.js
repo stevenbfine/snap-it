@@ -404,14 +404,15 @@ var HTMLSerializer = class {
    */
   processCSSFonts(win, href, css) {
     var serializer = this;
-    var fonts = css.match(/@font-face *?{.*?}/g);
+    var fonts = css.match(/@font-face *?{[\s\S]*?}/g);
     if (fonts) {
       var nestingDepth = this.windowDepth(win);
       var escapedQuote = this.escapedCharacter('"', nestingDepth);
       for (var i = 0; i < fonts.length; i++) {
         // Convert url specified in font to fully qualified url.
         var font = fonts[i].replace(/url\("(.*?)"\)/g, function(match, url) {
-          url = serializer.fullyQualifiedFontURL(href, url);
+          // If href is null the url must be a fully qualified url.
+          url = href ? serializer.fullyQualifiedFontURL(href, url) : url;
           return 'url("' + url + '")';
         }).
         replace(/"/g, escapedQuote);
@@ -440,17 +441,6 @@ var HTMLSerializer = class {
       return hrefURL.protocol + url;
     } else if (url.startsWith('/')) {
       return hrefURL.origin + url;
-    } else if (url.startsWith('./')) {
-      href = href.slice(0, href.lastIndexOf('/'));
-      url = url.slice(1, url.length);
-      return href + url;
-    } else if (url.startsWith('../')) {
-      href = href.slice(0, href.lastIndexOf('/'));
-      while (url.startsWith('../')) {
-        href = href.slice(0, href.lastIndexOf('/'));
-        url = url.slice(3, url.length);
-      }
-      return href + '/' + url;
     } else {
       href = href.slice(0, href.lastIndexOf('/'));
       return href + '/' + url;

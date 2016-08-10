@@ -464,29 +464,34 @@ QUnit.test('fullyQualifiedFontURL', function(assert) {
   var url2 = './hello/world/';
   assert.equal(
     serializer.fullyQualifiedFontURL(href, url2),
-    'http://www.example.com/path/hello/world/'
+    'http://www.example.com/path/./hello/world/'
   );
   var url3 = '../hello/world/';
   assert.equal(
     serializer.fullyQualifiedFontURL(href, url3),
-    'http://www.example.com/hello/world/'
+    'http://www.example.com/path/../hello/world/'
   );
   var url4 = 'http://www.google.com/';
   assert.equal(
     serializer.fullyQualifiedFontURL(href, url4),
     'http://www.google.com/'
   );
+  var url5 = 'hello/world/';
+  assert.equal(
+    serializer.fullyQualifiedFontURL(href, url5),
+    'http://www.example.com/path/hello/world/'
+  );
 });
 
 QUnit.test('processCSSFonts', function(assert) {
   var serializer = new HTMLSerializer();
   var cssText = 'body{color:red;}' +
-      '@font-face{font-family:Font;src:url("/hello/")}';
+      '@font-face{font-family:Font;\nsrc:url("/hello/")}';
   var href = 'http://www.example.com/';
   serializer.processCSSFonts(window, href, cssText);
   assert.equal(
     serializer.fontCSS[0],
-    '@font-face{font-family:Font;src:url("http://www.example.com/hello/")}'
+    '@font-face{font-family:Font;\nsrc:url("http://www.example.com/hello/")}'
   );
 });
 
