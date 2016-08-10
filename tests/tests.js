@@ -519,3 +519,20 @@ QUnit.test('loadFonts', function(assert) {
     'https://code.jquery.com/qunit/qunit-2.0.0.css'
   );
 });
+
+QUnit.test('processSrcdocAttribute', function(assert) {
+  var serializer = new HTMLSerializer();
+  var iframe = document.createElement('iframe');
+  iframe.setAttribute('srcdoc', 'some "html"');
+  serializer.processSrcdocAttribute(iframe);
+  assert.equal(serializer.html[0], 'srcdoc="some &quot;html&quot;" ');
+});
+
+QUnit.test('escapedCharacterString', function(assert) {
+  var serializer =  new HTMLSerializer();
+  var str = serializer.escapedCharacterString(`hello &>'<& "`, 2);
+  assert.equal(
+    str,
+    'hello &amp;amp;&amp;gt;&amp;#39;&amp;lt;&amp;amp; &amp;quot;'
+  );
+});
