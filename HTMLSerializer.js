@@ -225,16 +225,7 @@ var HTMLSerializer = class {
     var win = node.ownerDocument.defaultView;
     var nestingDepth = this.windowDepth(win);
     var text = node.textContent;
-    // Some escaping introduces '&' characters so we escape '&' first to prevent
-    // escaping the '&' added by other escape substitutions.
-    text = text.replace(/&/g, this.escapedCharacter('&', nestingDepth+1));
-    for (var char in this.CHARACTER_ESCAPING_MAP) {
-      if (char != '&') {
-        var regExp = new RegExp(char, 'g');
-        var escapedCharacter = this.escapedCharacter(char, nestingDepth+1);
-        text = text.replace(regExp, escapedCharacter);
-      }
-    }
+    text = this.escapedCharacterString(text, nestingDepth+1);
     text = this.escapedUnicodeString(text, this.INPUT_TEXT_TYPE.HTML);
     this.html.push(text);
   }
@@ -259,6 +250,10 @@ var HTMLSerializer = class {
         switch (attribute.name.toLowerCase())  {
           case 'src':
             this.processSrcAttribute(element);
+            break;
+          case 'srcdoc':
+            this.processSrcdocAttribute(element);
+            break;
           case 'style':
             break;
           default:
@@ -269,7 +264,7 @@ var HTMLSerializer = class {
       }
       // TODO(sfine): Ensure this is working by making sure that an iframe
       //              will always have attributes.
-      if (element.tagName == 'IFRAME') {
+      if (element.tagName == 'IFRAME' && element.attributes.src) {
         var valueIndex = this.processHoleAttribute(win, 'srcdoc');
         var iframeName = this.iframeFullyQualifiedName(element.contentWindow);
         this.frameHoles[valueIndex] = iframeName;
@@ -280,7 +275,7 @@ var HTMLSerializer = class {
   /**
    * Process the src attribute of a given element.
    *
-   * @param {Element} element The element being processed, which has the src
+   * @param {Element} element The Element being processed, which has the src
    *     attribute.
    * @private
    */
@@ -315,6 +310,20 @@ var HTMLSerializer = class {
       default:
         this.processSimpleAttribute(win, 'src', url.href);
     }
+  }
+
+  /**
+   * Process the srcdoc attribute of a given element.
+   *
+   * @param {Element} element The Element being processed which has the srcdoc
+   *     attribute.
+   */
+  processSrcdocAttribute(element) {
+    var win = element.ownerDocument.defaultView;
+    var nestingDepth = this.windowDepth(win);
+    var value = element.attributes.srcdoc.value;
+    value = this.escapedCharacterString(value, nestingDepth+1);
+    this.processSimpleAttribute(win, 'srcdoc', value);
   }
 
   /**
@@ -498,6 +507,30 @@ var HTMLSerializer = class {
       var arr = 'amp;'.repeat(depth-1);
       return '&' + arr + this.CHARACTER_ESCAPING_MAP[char].slice(1);
     }
+  }
+
+  /**
+   * Returns the string that is passed as an argument with all characters in
+   * |this.ESCAPED_CHARACTER_MAP| replaced with the correct character encoding
+   * that should be used, given the nesting depth of the window in the frame
+   * tree.
+   *
+   * @param {string} str The string that should have its characters escaped.
+   * @param {number} depth The nesting depth of the appropriate window in the
+   *     frame tree.
+   * @return {string} The correctly escaped string.
+   */
+  escapedCharacterString(str, depth) {
+    // Some escaping introduces '&' characters so we escape '&' first to prevent
+    // escaping the '&' added by other escape substitutions.
+    str = str.replace(/&/g, this.escapedCharacter('&', depth));
+    for (var char in this.CHARACTER_ESCAPING_MAP) {
+      if (char != '&') {
+        var regExp = new RegExp(char, 'g');
+        str = str.replace(regExp, this.escapedCharacter(char, depth));
+      }
+    }
+    return str;
   }
 
   /**
