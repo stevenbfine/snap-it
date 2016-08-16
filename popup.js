@@ -56,7 +56,7 @@ function outputHTMLString(messages) {
   for (var i = 1; i < messages.length; i++) {
     rootIndex = messages[i].frameIndex === '0' ? i : rootIndex;
   }
-  fillRemainingHoles(messages, rootIndex);
+  fillRemainingHolesAndMinimizeStyles(messages, rootIndex);
   return messages[rootIndex].html.join('');
 }
 
@@ -67,7 +67,7 @@ function outputHTMLString(messages) {
  *     scripts.
  * @param {number} i The index of messages to use.
  */
-function fillRemainingHoles(messages, i) {
+function fillRemainingHolesAndMinimizeStyles(messages, i) {
   var html = messages[i].html;
   var frameHoles = messages[i].frameHoles;
   for (var index in frameHoles) {
@@ -75,10 +75,86 @@ function fillRemainingHoles(messages, i) {
       var frameIndex = frameHoles[index];
       for (var j = 0; j < messages.length; j++) {
         if (messages[j].frameIndex == frameIndex) {
-          fillRemainingHoles(messages, j);
+          fillRemainingHolesAndMinimizeStyles(messages, j);
           html[index] = messages[j].html.join('');
         }
       }
     }
   }
+  minimizeStyles(messages[i]);
+}
+
+/**
+ * Removes all style attribute properties that are unneeded.
+ *
+ * @param{Object} message The message Object whose style attributes should be
+ *     minimized.
+ */
+function minimizeStyles(message) {
+  var nestingDepth = message.frameIndex.split('.').length - 1;
+  var iframe = document.createElement('iframe');
+  document.body.appendChild(iframe);
+  iframe.setAttribute(
+    'style',
+    `height: ${message.windowHeight}px;` + 
+    `width: ${message.windowWidth}px;`
+  );
+  var html = message.html.join('');
+  html = unescapeHTML(html, nestingDepth);
+  iframe.contentDocument.documentElement.innerHTML = html;
+  var doc = iframe.contentDocument;
+
+  for (var id in message.idToStyleIndex) {
+    var index = message.idToStyleIndex[id];
+    var fullStyleDeclaration = message.html[index];
+    var element = doc.getElementById(id);
+    if (element) {
+      element.removeAttribute('style');
+      var unstyledStyle = doc.defaultView.getComputedStyle(element, null);
+      var stylePrefix;
+      var styleSuffix;
+      // Remove style declaration from style attribute.
+      var style = fullStyleDeclaration.replace(
+        /^style=("|&(amp;)*?quot;)(.*)("|&(amp;)*?quot;) ?$/,
+        function(match, quote, p2, content) {
+          stylePrefix = 'style=' + quote;
+          styleSuffix = quote + ' ';
+          return content;
+        }
+      );
+      // Remove property value pair if unstyledStyle has the same property
+      // value.
+      style = style.replace(
+        /([\S]*?): ("|&(amp;)*?quot;)?(.*?)("|&(amp;)*?quot;)?; ?/g,
+        function(match, property, p2, p3, value) {
+          unstyledValue = unstyledStyle[property].replace(/"/g, '');
+          if (unstyledValue == value) {
+            return '';
+          } else {
+            return match;
+          }
+        }
+      );
+      message.html[index] = stylePrefix + style + styleSuffix;
+      element.setAttribute('style', style);
+    }
+  }
+  iframe.remove();
+}
+
+/**
+ * Take a string that represents valid HTML and unescape it so that it can be
+ * rendered.
+ *
+ * @param {string} html The HTML to unescape.
+ * @param (number) nestingDepth The number of times the HTML must be unescaped.
+ * @return {string} The unescaped HTML.
+ */
+function unescapeHTML(html, nestingDepth) {
+  var div = document.createElement('div');
+  for (var i = 0; i < nestingDepth; i++) {
+    div.innerHTML = `<iframe srcdoc="${html}"></iframe>`;
+    html = div.childNodes[0].attributes.srcdoc.value;
+  }
+  return html;
 }
