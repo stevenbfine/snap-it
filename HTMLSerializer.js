@@ -120,6 +120,23 @@ var HTMLSerializer = class {
      * is called, which can be used as an element id.
      */
     this.generateId = this.generateIdGenerator();
+
+    /**
+     * @private {number} The window height of the Document being serialized.
+     */
+    this.windowHeight;
+
+    /**
+     * @private {number} The window width of the Document being serialized.
+     */
+    this.windowWidth;
+
+    /**
+     * @private {Object<string, number>} The keys represent the id of an
+     *     Element. The value is the index in |this.html| where the
+     *     value of the style attribute for that Element is specified.
+     */
+    this.idToStyleIndex = {};
   }
 
   /**
@@ -139,8 +156,14 @@ var HTMLSerializer = class {
       this.processText(node);
     } else {
       this.html.push(`<${tagName.toLowerCase()} `);
-      this.processAttributes(node);
-      this.processPseudoElements(node);
+      var id;
+      if (node.attributes.id) {
+        id = node.attributes.id.value;
+      } else {
+        id = this.generateId(node.ownerDocument);
+      }
+      this.processAttributes(node, id);
+      this.processPseudoElements(node, id);
       this.html.push('>');
 
       var children = node.childNodes;
@@ -163,6 +186,9 @@ var HTMLSerializer = class {
    * @param {Document} doc The Document to serialize.
    */ 
   processDocument(doc) {
+    this.windowHeight = doc.defaultView.innerHeight;
+    this.windowWidth = doc.defaultView.innerWidth;
+
     this.html.push('<!DOCTYPE html>\n');
     this.loadFonts(doc);
     var stylePlaceholderIndex = this.html.length;
@@ -186,9 +212,11 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The Element whose pseudo elements will be
    *     processed.
+   * @param {string} id The id of the Element whose pseudo elements will be
+   *     processed.
    * @private
    */
-  processPseudoElements(element) {
+  processPseudoElements(element, id) {
     var win = element.ownerDocument.defaultView;
     for (var i = 0, pseudo; pseudo = this.PSEUDO_ELEMENTS[i]; i++) {
       var style = win.getComputedStyle(element, pseudo);
@@ -200,13 +228,6 @@ var HTMLSerializer = class {
           styleText,
           this.INPUT_TEXT_TYPE.CSS
         );
-        var id;
-        if (!element.attributes.id) {
-          id = this.generateId(element.ownerDocument);
-          this.processSimpleAttribute(win, 'id', id);
-        } else {
-          id = element.attributes.id.value;
-        }
         this.pseudoElementCSS.push(
           '#' + id + ':' + pseudo + '{' + styleText + '} '
         );
@@ -235,14 +256,17 @@ var HTMLSerializer = class {
    * appropriate attribute names and values.
    *
    * @param {Element} element The Element to serialize.
+   * @param {string} id The id of the Element being serialized.
    * @private
    */ 
-  processAttributes(element) {
+  processAttributes(element, id) {
     var win = element.ownerDocument.defaultView;
     var style = win.getComputedStyle(element, null).cssText;
     var nestingDepth = this.windowDepth(win);
     style = style.replace(/"/g, this.escapedCharacter('"', nestingDepth+1));
+    this.idToStyleIndex[id] = this.html.length;
     this.processSimpleAttribute(win, 'style', style);
+    this.processSimpleAttribute(win, 'id', id);
 
     var attributes = element.attributes;
     if (attributes) {
@@ -255,6 +279,7 @@ var HTMLSerializer = class {
             this.processSrcdocAttribute(element);
             break;
           case 'style':
+          case 'id':
             break;
           default:
             var name = attribute.name;
