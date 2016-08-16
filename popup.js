@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('button').addEventListener('click', click);
+  if (document.getElementById('button')) {
+    document.getElementById('button').addEventListener('click', click);
+  }
 });
 
 function click() {
