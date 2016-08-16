@@ -149,7 +149,7 @@ function minimizeStyles(message) {
  * rendered.
  *
  * @param {string} html The HTML to unescape.
- * @param (number) nestingDepth The number of times the HTML must be unescaped.
+ * @param {number} nestingDepth The number of times the HTML must be unescaped.
  * @return {string} The unescaped HTML.
  */
 function unescapeHTML(html, nestingDepth) {
