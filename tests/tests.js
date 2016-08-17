@@ -541,7 +541,11 @@ QUnit.test('unescapeHTML', function(assert) {
 
 QUnit.test('minimizeStyles', function(assert) {
   var message = {
-    'html': ['<div id="myId"', 'style="animation-delay: 0s; width: 5px;" ', '></div>'],
+    'html': [
+        '<div id="myId"',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></div>'
+    ],
     'frameHoles': null,
     'idToStyleIndex': {"myId": 1},
     'windowHeight': 5,
@@ -550,4 +554,26 @@ QUnit.test('minimizeStyles', function(assert) {
   };
   minimizeStyles(message);
   assert.equal(message.html[1], 'style="width: 5px;" ');
+});
+
+QUnit.test('serialize document', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var iframe = document.createElement('iframe');
+  fixture.appendChild(iframe);
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode('hello world'));
+  iframe.contentDocument.body.appendChild(div);
+  serializer.processTree(div);
+  var win = div.ownerDocument.defaultView;
+  var message = {
+    'html': serializer.html,
+    'frameHoles': serializer.frameHoles,
+    'idToStyleIndex': serializer.idToStyleIndex,
+    'windowHeight': serializer.windowHeight,
+    'windowWidth': serializer.windowWidth,
+    'frameIndex': serializer.iframeFullyQualifiedName(win)
+  };
+  var html = unescapeHTML(outputHTMLString([message]), 1);
+  assert.equal(html, '<div style="" id="snap-it0" >hello world</div>');
 });
