@@ -556,7 +556,7 @@ QUnit.test('minimizeStyles', function(assert) {
   assert.equal(message.html[1], 'style="width: 5px;" ');
 });
 
-QUnit.test('serialize document', function(assert) {
+QUnit.test('serialize tree: end-to-end', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var iframe = document.createElement('iframe');
