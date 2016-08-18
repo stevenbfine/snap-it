@@ -109,7 +109,7 @@ function minimizeStyles(message) {
   if (message.rootStyleIndex) {
     minimizeStyle(message, doc, doc.documentElement, message.rootStyleIndex);
   }
-  
+
   for (var id in message.idToStyleIndex) {
     var index = message.idToStyleIndex[id];
     var element = doc.getElementById(id);
@@ -133,9 +133,11 @@ function minimizeStyles(message) {
  *     attribute is specified.
  */
 function minimizeStyle(message, doc, element, index) {
-  var fullStyleDeclaration = message.html[index];
+  var originalStyle = element.getAttribute('style');
   element.removeAttribute('style');
   var unstyledStyle = doc.defaultView.getComputedStyle(element, null);
+
+  var fullStyleDeclaration = message.html[index];
   var stylePrefix;
   var styleSuffix;
   // Remove style declaration from style attribute.
@@ -161,7 +163,7 @@ function minimizeStyle(message, doc, element, index) {
     }
   );
   message.html[index] = stylePrefix + style + styleSuffix;
-  element.setAttribute('style', style);
+  element.setAttribute('style', originalStyle);
 }
 
 /**
