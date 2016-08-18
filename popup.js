@@ -89,7 +89,7 @@ function fillRemainingHolesAndMinimizeStyles(messages, i) {
 /**
  * Removes all style attribute properties that are unneeded.
  *
- * @param{Object} message The message Object whose style attributes should be
+ * @param {Object} message The message Object whose style attributes should be
  *     minimized.
  */
 function minimizeStyles(message) {
@@ -108,40 +108,56 @@ function minimizeStyles(message) {
 
   for (var id in message.idToStyleIndex) {
     var index = message.idToStyleIndex[id];
-    var fullStyleDeclaration = message.html[index];
     var element = doc.getElementById(id);
     if (element) {
-      element.removeAttribute('style');
-      var unstyledStyle = doc.defaultView.getComputedStyle(element, null);
-      var stylePrefix;
-      var styleSuffix;
-      // Remove style declaration from style attribute.
-      var style = fullStyleDeclaration.replace(
-        /^style=("|&(amp;)*?quot;)(.*)("|&(amp;)*?quot;) ?$/,
-        function(match, quote, p2, content) {
-          stylePrefix = 'style=' + quote;
-          styleSuffix = quote + ' ';
-          return content;
-        }
-      );
-      // Remove property value pair if unstyledStyle has the same property
-      // value.
-      style = style.replace(
-        /([\S]*?): ("|&(amp;)*?quot;)?(.*?)("|&(amp;)*?quot;)?; ?/g,
-        function(match, property, p2, p3, value) {
-          unstyledValue = unstyledStyle[property].replace(/"/g, '');
-          if (unstyledValue == value) {
-            return '';
-          } else {
-            return match;
-          }
-        }
-      );
-      message.html[index] = stylePrefix + style + styleSuffix;
-      element.setAttribute('style', style);
+      minimizeStyle(message, doc, element, index);
     }
   }
   iframe.remove();
+}
+
+/**
+ * Removes all style attribute properties that are unneeded for a single
+ *     element.
+ *
+ * @param {Object} message The message Object that contains the element whose
+ *     whose style attributes should be minimized.
+ * @param {Document} doc The Document that contains the rendered HTML.
+ * @param {Element} element The Element whose style attributes should be
+ *     minimized.
+ * @param {number} index The index in |message.html| where the Element's style
+ *     attribute is specified.
+ */
+function minimizeStyle(message, doc, element, index) {
+  var fullStyleDeclaration = message.html[index];
+  element.removeAttribute('style');
+  var unstyledStyle = doc.defaultView.getComputedStyle(element, null);
+  var stylePrefix;
+  var styleSuffix;
+  // Remove style declaration from style attribute.
+  var style = fullStyleDeclaration.replace(
+    /^style=("|&(amp;)*?quot;)(.*)("|&(amp;)*?quot;) ?$/,
+    function(match, quote, p2, content) {
+      stylePrefix = 'style=' + quote;
+      styleSuffix = quote + ' ';
+      return content;
+    }
+  );
+  // Remove property value pair if unstyledStyle has the same property
+  // value.
+  style = style.replace(
+    /([\S]*?): ("|&(amp;)*?quot;)?(.*?)("|&(amp;)*?quot;)?; ?/g,
+    function(match, property, p2, p3, value) {
+      unstyledValue = unstyledStyle[property].replace(/"/g, '');
+      if (unstyledValue == value) {
+        return '';
+      } else {
+        return match;
+      }
+    }
+  );
+  message.html[index] = stylePrefix + style + styleSuffix;
+  element.setAttribute('style', style);
 }
 
 /**
