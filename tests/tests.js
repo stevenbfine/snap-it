@@ -577,3 +577,11 @@ QUnit.test('serialize tree: end-to-end', function(assert) {
   var html = unescapeHTML(outputHTMLString([message]), 1);
   assert.equal(html, '<div style="" id="snap-it0" >hello world</div>');
 });
+
+QUnit.test('processTree: head tag', function(assert) {
+  var serializer = new HTMLSerializer();
+  var head = document.createElement('head');
+  serializer.processTree(head);
+  assert.equal(serializer.fontPlaceHolderIndex, 4);
+  assert.equal(serializer.pseudoElementPlaceHolderIndex, 5);
+});
