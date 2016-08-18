@@ -556,6 +556,28 @@ QUnit.test('minimizeStyles', function(assert) {
   assert.equal(message.html[1], 'style="width: 5px;" ');
 });
 
+QUnit.test('minimizeStyle', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.setAttribute('id', 'myId');
+  div.setAttribute('style', 'animation-delay: 0s; width: 5px;');
+  fixture.appendChild(div);
+  var message = {
+    'html': [
+        '<div id="myId"',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></div>'
+    ],
+    'frameHoles': null,
+    'idToStyleIndex': {"myId": 1},
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'frameIndex': '0'
+  };
+  minimizeStyle(message, document, div, 1);
+  assert.equal(message.html[1], 'style="width: 5px;" ');
+});
+
 QUnit.test('serialize tree: end-to-end', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
