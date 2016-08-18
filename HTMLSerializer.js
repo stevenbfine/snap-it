@@ -143,6 +143,12 @@ var HTMLSerializer = class {
      *     value of the style attribute for that Element is specified.
      */
     this.idToStyleIndex = {};
+
+    /**
+     * @private {number} The index in |this.html| at which the html element's
+     *     style attribute is specified.
+     */
+    this.rootStyleIndex;
   }
 
   /**
@@ -278,6 +284,9 @@ var HTMLSerializer = class {
     var nestingDepth = this.windowDepth(win);
     style = style.replace(/"/g, this.escapedCharacter('"', nestingDepth+1));
     this.idToStyleIndex[id] = this.html.length;
+    if (element.tagName == 'HTML') {
+      this.rootStyleIndex = this.html.length;
+    }
     this.processSimpleAttribute(win, 'style', style);
     this.processSimpleAttribute(win, 'id', id);
 

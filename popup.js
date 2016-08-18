@@ -106,6 +106,10 @@ function minimizeStyles(message) {
   iframe.contentDocument.documentElement.innerHTML = html;
   var doc = iframe.contentDocument;
 
+  if (message.rootStyleIndex) {
+    minimizeStyle(message, doc, doc.documentElement, message.rootStyleIndex);
+  }
+  
   for (var id in message.idToStyleIndex) {
     var index = message.idToStyleIndex[id];
     var element = doc.getElementById(id);

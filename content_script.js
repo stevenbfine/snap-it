@@ -10,6 +10,7 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
     'idToStyleIndex': htmlSerializer.idToStyleIndex,
     'windowHeight': htmlSerializer.windowHeight,
     'windowWidth': htmlSerializer.windowWidth,
+    'rootStyleIndex': htmlSerializer.rootStyleIndex,
     'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };
   chrome.runtime.sendMessage(result);
