@@ -110,6 +110,12 @@ var HTMLSerializer = class {
     this.fontPlaceHolderIndex;
 
     /**
+     * @private {number} The index in |this.html| where the style element
+     *     containing the pseudo elements will go.
+     */
+    this.pseudoElementPlaceHolderIndex;
+
+    /**
      * @private {Array<string>} Each element of this array is a string
      *     representing CSS that defines a single pseudo element.
      */
@@ -166,6 +172,13 @@ var HTMLSerializer = class {
       this.processPseudoElements(node, id);
       this.html.push('>');
 
+      if (tagName == 'HEAD') {
+        this.fontPlaceHolderIndex = this.html.length;
+        this.html.push('');
+        this.pseudoElementPlaceHolderIndex = this.html.length;
+        this.html.push('');
+      }
+
       var children = node.childNodes;
       if (children) {
         for (var i = 0, child; child = children[i]; i++) {
@@ -191,7 +204,7 @@ var HTMLSerializer = class {
 
     this.html.push('<!DOCTYPE html>\n');
     this.loadFonts(doc);
-    var stylePlaceholderIndex = this.html.length;
+    this.pseudoElementPlaceHolderIndex = this.html.length;
     this.html.push(''); // Entry where pseudo element style tag will go.
 
     var nodes = doc.childNodes;
@@ -201,7 +214,7 @@ var HTMLSerializer = class {
       }
     }
     var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
-    this.html[stylePlaceholderIndex] = pseudoElements;
+    this.html[this.pseudoElementPlaceHolderIndex] = pseudoElements;
   }
 
   /**
