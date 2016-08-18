@@ -250,8 +250,8 @@ QUnit.test('processTree: no closing tag', function(assert) {
     serializer.html[1],
     `style="${window.getComputedStyle(img, null).cssText}" `
   );
-  assert.equal(serializer.html[2], '>');
-  assert.equal(serializer.html.length, 3);
+  assert.equal(serializer.html[3], '>')
+  assert.equal(serializer.html.length, 4);
 });
 
 QUnit.test('processTree: closing tag', function(assert) {
@@ -263,9 +263,9 @@ QUnit.test('processTree: closing tag', function(assert) {
     serializer.html[1],
     `style="${window.getComputedStyle(p, null).cssText}" `
   );
-  assert.equal(serializer.html[2], '>');
-  assert.equal(serializer.html[3], '</p>');
-  assert.equal(serializer.html.length, 4);
+  assert.equal(serializer.html[3], '>');
+  assert.equal(serializer.html[4], '</p>');
+  assert.equal(serializer.html.length, 5);
 });
 
 QUnit.test(
@@ -277,7 +277,7 @@ QUnit.test(
     img.setAttribute('height', 5);
     img.setAttribute('width', 5);
     fixture.appendChild(img);
-    serializer.processAttributes(img);
+    serializer.processAttributes(img, 'id');
     var styleText = serializer.html[0];
     assert.ok(styleText.includes(' height: 5px;'));
     assert.ok(styleText.includes(' width: 5px;'));
@@ -292,7 +292,7 @@ QUnit.test(
     var img = document.createElement('img');
     fixture.appendChild(img);
     var style = window.getComputedStyle(img, null);
-    serializer.processAttributes(img);
+    serializer.processAttributes(img, 'id');
     var styleText = serializer.html[0];
     assert.ok(styleText.includes(` height: ${style.height};`));
     assert.ok(styleText.includes(` width: ${style.width};`));
@@ -309,7 +309,7 @@ QUnit.test(
     img.setAttribute('width', 5);
     img.setAttribute('style', 'height: 10px; width: 10px;');
     fixture.appendChild(img);
-    serializer.processAttributes(img);
+    serializer.processAttributes(img, 'id');
     var styleText = serializer.html[0];
     assert.ok(styleText.includes(' height: 10px;'));
     assert.ok(styleText.includes(' width: 10px;'));
@@ -364,59 +364,55 @@ QUnit.test('processText: nested escaped characters', function(assert) {
   );
 });
 
-QUnit.test('processPseudoElements: element with id', function(assert) {
+QUnit.test('processPseudoElements', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var element = document.createElement('div');
-  element.setAttribute('id', 'myID');
   var style = document.createElement('style');
   style.appendChild(document.createTextNode('div::before{content:"test";}'));
   fixture.appendChild(style);
   fixture.appendChild(element);
-  serializer.processPseudoElements(element);
+  serializer.processPseudoElements(element, 'myId');
   var styleText = window.getComputedStyle(element, ':before').cssText;
-  assert.equal(serializer.html.length, 0);
   assert.equal(serializer.pseudoElementCSS.length, 1);
-  assert.equal(serializer.pseudoElementCSS[0], `#myID::before{${styleText}} `);
+  assert.equal(serializer.pseudoElementCSS[0], `#myId::before{${styleText}} `);
 });
 
-QUnit.test('processPseudoElements: element without id', function(assert) {
+QUnit.test('processTree: element without id', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var element = document.createElement('div');
-  var style = document.createElement('style');
-  style.appendChild(document.createTextNode('div::after{content:"test";}'));
-  fixture.appendChild(style);
   fixture.appendChild(element);
-  serializer.processPseudoElements(element);
-  var styleText = window.getComputedStyle(element, ':after').cssText;
-  assert.equal(serializer.html[0], 'id="snap-it0" ');
-  assert.equal(serializer.pseudoElementCSS.length, 1);
-  assert.equal(
-    serializer.pseudoElementCSS[0],
-    `#snap-it0::after{${styleText}} `
-  );
+  serializer.processTree(element);
+  assert.equal(serializer.html[0], '<div ');
+  assert.equal(serializer.html[2], 'id="snap-it0" ');
+  assert.equal(serializer.html[3], '>');
 });
 
-QUnit.test('processPseudoElements: generated id exists', function(assert) {
+QUnit.test('processTree: element with id', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var element = document.createElement('div');
+  element.setAttribute('id', 'myId');
+  fixture.appendChild(element);
+  serializer.processTree(element);
+  assert.equal(serializer.html[0], '<div ');
+  assert.equal(serializer.html[2], 'id="myId" ');
+  assert.equal(serializer.html[3], '>');
+});
+
+QUnit.test('processTree: generated id exists', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var span = document.createElement('span');
   span.setAttribute('id', 'snap-it0');
-  var div = document.createElement('div');
-  var style = document.createElement('style');
-  style.appendChild(document.createTextNode('div::after{content:"test";}'));
-  fixture.appendChild(style);
   fixture.appendChild(span);
-  fixture.appendChild(div);
-  serializer.processPseudoElements(div);
-  var styleText = window.getComputedStyle(div, ':after').cssText;
-  assert.equal(serializer.html[0], 'id="snap-it1" ');
-  assert.equal(serializer.pseudoElementCSS.length, 1);
-  assert.equal(
-    serializer.pseudoElementCSS[0],
-    `#snap-it1::after{${styleText}} `
-  );
+  var element = document.createElement('div');
+  fixture.appendChild(element);
+  serializer.processTree(element);
+  assert.equal(serializer.html[0], '<div ');
+  assert.equal(serializer.html[2], 'id="snap-it1" ');
+  assert.equal(serializer.html[3], '>');
 });
 
 QUnit.test('generateIdGenerator', function(assert) {
@@ -535,4 +531,131 @@ QUnit.test('escapedCharacterString', function(assert) {
     str,
     'hello &amp;amp;&amp;gt;&amp;#39;&amp;lt;&amp;amp; &amp;quot;'
   );
+});
+
+QUnit.test('unescapeHTML', function(assert) {
+  var html = '&amp;lt;div&amp;gt;&amp;lt;/div&amp;gt;';
+  var unescapedHTML = unescapeHTML(html, 2);
+  assert.equal(unescapedHTML, '<div></div>');
+});
+
+QUnit.test('minimizeStyles', function(assert) {
+  var message = {
+    'html': [
+        '<div id="myId"',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></div>'
+    ],
+    'frameHoles': null,
+    'idToStyleIndex': {"myId": 1},
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'frameIndex': '0'
+  };
+  minimizeStyles(message);
+  assert.equal(message.html[1], 'style="width: 5px;" ');
+});
+
+QUnit.test('minimizeStyle', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.setAttribute('id', 'myId');
+  div.setAttribute('style', 'animation-delay: 0s; width: 5px;');
+  fixture.appendChild(div);
+  var message = {
+    'html': [
+        '<div id="myId"',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></div>'
+    ],
+    'frameHoles': null,
+    'idToStyleIndex': {"myId": 1},
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'frameIndex': '0'
+  };
+  minimizeStyle(message, document, div, 1);
+  assert.equal(message.html[1], 'style="width: 5px;" ');
+});
+
+QUnit.test('serialize tree: end-to-end, no style', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var iframe = document.createElement('iframe');
+  fixture.appendChild(iframe);
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode('hello world'));
+  iframe.contentDocument.body.appendChild(div);
+  serializer.processTree(div);
+  var win = div.ownerDocument.defaultView;
+  var message = {
+    'html': serializer.html,
+    'frameHoles': serializer.frameHoles,
+    'idToStyleIndex': serializer.idToStyleIndex,
+    'windowHeight': serializer.windowHeight,
+    'windowWidth': serializer.windowWidth,
+    'frameIndex': serializer.iframeFullyQualifiedName(win)
+  };
+  var html = unescapeHTML(outputHTMLString([message]), 1);
+  assert.equal(html, '<div id="snap-it0" >hello world</div>');
+});
+
+QUnit.test('serialize tree: end-to-end, style', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var iframe = document.createElement('iframe');
+  fixture.appendChild(iframe);
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode('hello world'));
+  iframe.contentDocument.body.appendChild(div);
+  var style = document.createElement('style');
+  style.innerHTML = 'div { border: 1px solid blue; }';
+  iframe.contentDocument.body.appendChild(style);
+  serializer.processTree(div);
+  var win = div.ownerDocument.defaultView;
+  var message = {
+    'html': serializer.html,
+    'frameHoles': serializer.frameHoles,
+    'idToStyleIndex': serializer.idToStyleIndex,
+    'windowHeight': serializer.windowHeight,
+    'windowWidth': serializer.windowWidth,
+    'frameIndex': serializer.iframeFullyQualifiedName(win)
+  };
+  var html = unescapeHTML(outputHTMLString([message]), 1);
+  assert.equal(
+    html,
+    '<div style="border-bottom-color: rgb(0, 0, 255); border-bottom-style: ' +
+    'solid; border-bottom-width: 4px; border-left-color: rgb(0, 0, 255); ' +
+    'border-left-style: solid; border-left-width: 4px; border-right-color: ' +
+    'rgb(0, 0, 255); border-right-style: solid; border-right-width: 4px; ' +
+    'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' + 
+    'border-top-width: 4px; width: 276px; perspective-origin: 142px 24px; ' +
+    'transform-origin: 142px 24px; " id="snap-it0" >hello world</div>'
+  );
+});
+
+QUnit.test('processTree: head tag', function(assert) {
+  var serializer = new HTMLSerializer();
+  var head = document.createElement('head');
+  serializer.processTree(head);
+  assert.equal(serializer.fontPlaceHolderIndex, 4);
+  assert.equal(serializer.pseudoElementPlaceHolderIndex, 5);
+});
+
+QUnit.test('minimizeStyles: root html tag', function(assert) {
+  var message = {
+    'html': [
+        '<html',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></html>'
+    ],
+    'frameHoles': null,
+    'idToStyleIndex': {},
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'rootStyleIndex': 1,
+    'frameIndex': '0'
+  };
+  minimizeStyles(message);
+  assert.equal(message.html[1], 'style="width: 5px;" ');
 });
