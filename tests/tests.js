@@ -607,3 +607,21 @@ QUnit.test('processTree: head tag', function(assert) {
   assert.equal(serializer.fontPlaceHolderIndex, 4);
   assert.equal(serializer.pseudoElementPlaceHolderIndex, 5);
 });
+
+QUnit.test('minimizeStyles: root html tag', function(assert) {
+  var message = {
+    'html': [
+        '<html',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></html>'
+    ],
+    'frameHoles': null,
+    'idToStyleIndex': {},
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'rootStyleIndex': 1,
+    'frameIndex': '0'
+  };
+  minimizeStyles(message);
+  assert.equal(message.html[1], 'style="width: 5px;" ');
+});
