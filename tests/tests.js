@@ -597,7 +597,7 @@ QUnit.test('serialize tree: end-to-end', function(assert) {
     'frameIndex': serializer.iframeFullyQualifiedName(win)
   };
   var html = unescapeHTML(outputHTMLString([message]), 1);
-  assert.equal(html, '<div style="" id="snap-it0" >hello world</div>');
+  assert.equal(html, '<div id="snap-it0" >hello world</div>');
 });
 
 QUnit.test('processTree: head tag', function(assert) {

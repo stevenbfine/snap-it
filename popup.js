@@ -162,7 +162,11 @@ function minimizeStyle(message, doc, element, index) {
       }
     }
   );
-  message.html[index] = stylePrefix + style + styleSuffix;
+  if (style) {
+    message.html[index] = stylePrefix + style + styleSuffix;
+  } else {
+    message.html[index] = '';
+  }
   element.setAttribute('style', originalStyle);
 }
 
