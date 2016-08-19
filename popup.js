@@ -25,6 +25,11 @@ function click() {
         completeProcess(messages);
     });
   });
+
+  var a = document.getElementById('button');
+  a.className = 'serialize';
+  a.innerHTML = 'Serializing...';
+  a.removeEventListener('click', click);
 }
 
 /**
@@ -39,10 +44,11 @@ function completeProcess(messages) {
   var file = new Blob([html], {type: 'text/html'});
   var url = URL.createObjectURL(file);
 
-  var a = document.getElementById('download');
+  var a = document.getElementById('button');
+  a.className = 'download';
+  a.innerHTML = 'Download';
   a.href = url;
-  a.download = "webpage.html";
-  a.innerHTML = "Download";
+  a.download = "snap-it.html";
 }
 
 /**
