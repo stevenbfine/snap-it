@@ -516,14 +516,6 @@ QUnit.test('loadFonts', function(assert) {
   );
 });
 
-QUnit.test('processSrcdocAttribute', function(assert) {
-  var serializer = new HTMLSerializer();
-  var iframe = document.createElement('iframe');
-  iframe.setAttribute('srcdoc', 'some "html"');
-  serializer.processSrcdocAttribute(iframe);
-  assert.equal(serializer.html[0], 'srcdoc="some &quot;html&quot;" ');
-});
-
 QUnit.test('escapedCharacterString', function(assert) {
   var serializer =  new HTMLSerializer();
   var str = serializer.escapedCharacterString(`hello &>'<& "`, 2);
@@ -658,4 +650,14 @@ QUnit.test('minimizeStyles: root html tag', function(assert) {
   };
   minimizeStyles(message);
   assert.equal(message.html[1], 'style="width: 5px;" ');
+});
+
+QUnit.test('processAttributes: escaping characters', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.setAttribute('name', '<">');
+  fixture.appendChild(div);
+  serializer.processAttributes(div, 'myId');
+  assert.equal(serializer.html[2], 'name="&lt;&quot;&gt;" ');
 });

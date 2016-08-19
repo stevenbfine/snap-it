@@ -282,7 +282,6 @@ var HTMLSerializer = class {
     var win = element.ownerDocument.defaultView;
     var style = win.getComputedStyle(element, null).cssText;
     var nestingDepth = this.windowDepth(win);
-    style = style.replace(/"/g, this.escapedCharacter('"', nestingDepth+1));
     this.idToStyleIndex[id] = this.html.length;
     if (element.tagName == 'HTML') {
       this.rootStyleIndex = this.html.length;
@@ -296,9 +295,6 @@ var HTMLSerializer = class {
         switch (attribute.name.toLowerCase())  {
           case 'src':
             this.processSrcAttribute(element);
-            break;
-          case 'srcdoc':
-            this.processSrcdocAttribute(element);
             break;
           case 'style':
           case 'id':
@@ -360,20 +356,6 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Process the srcdoc attribute of a given element.
-   *
-   * @param {Element} element The Element being processed which has the srcdoc
-   *     attribute.
-   */
-  processSrcdocAttribute(element) {
-    var win = element.ownerDocument.defaultView;
-    var nestingDepth = this.windowDepth(win);
-    var value = element.attributes.srcdoc.value;
-    value = this.escapedCharacterString(value, nestingDepth+1);
-    this.processSimpleAttribute(win, 'srcdoc', value);
-  }
-
-  /**
    * Get a URL object for the value of the |element|'s src attribute.
    *
    * @param {Element} element The element for which to retrieve the URL.
@@ -425,7 +407,9 @@ var HTMLSerializer = class {
    * @param {string} value The value of the attribute.
    */
   processSimpleAttribute(win, name, value) {
-    var quote = this.escapedCharacter('"', this.windowDepth(win));
+    var nestingDepth = this.windowDepth(win);
+    var quote = this.escapedCharacter('"', nestingDepth);
+    value = this.escapedCharacterString(value, nestingDepth+1);
     this.html.push(`${name}=${quote}${value}${quote} `);
   }
 
