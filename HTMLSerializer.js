@@ -209,6 +209,12 @@ var HTMLSerializer = class {
     this.windowWidth = doc.defaultView.innerWidth;
 
     this.html.push('<!DOCTYPE html>\n');
+
+    if (this.iframeFullyQualifiedName(doc.defaultView) == '0') {
+      this.html.push(`<!-- Original window height: ${this.windowHeight}. -->\n`);
+      this.html.push(`<!-- Original window width: ${this.windowWidth}. -->\n`);
+    }
+
     this.loadFonts(doc);
     this.pseudoElementPlaceHolderIndex = this.html.length;
     this.html.push(''); // Entry where pseudo element style tag will go.

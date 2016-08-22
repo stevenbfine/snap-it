@@ -661,3 +661,16 @@ QUnit.test('processAttributes: escaping characters', function(assert) {
   serializer.processAttributes(div, 'myId');
   assert.equal(serializer.html[2], 'name="&lt;&quot;&gt;" ');
 });
+
+QUnit.test('window size comment', function(assert) {
+  var serializer = new HTMLSerializer();
+  serializer.processDocument(document);
+  assert.equal(
+    serializer.html[1],
+    `<!-- Original window height: ${window.innerHeight}. -->\n`
+  );
+  assert.equal(
+    serializer.html[2],
+    `<!-- Original window width: ${window.innerWidth}. -->\n`
+  );
+});
