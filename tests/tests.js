@@ -674,3 +674,18 @@ QUnit.test('window size comment', function(assert) {
     `<!-- Original window width: ${window.innerWidth}. -->\n`
   );
 });
+
+QUnit.test('processDocument: doctype tag', function(assert) {
+  var serializer = new HTMLSerializer();
+  serializer.processDocument(document);
+  assert.equal(serializer.html[0], '<!DOCTYPE html>\n');
+});
+
+QUnit.test('processDocument: no doctype tag', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var iframe = document.createElement('iframe');
+  fixture.appendChild(iframe);
+  serializer.processDocument(iframe.contentDocument);
+  assert.notEqual(serializer.html[0], '<!DOCTYPE html>\n');
+});

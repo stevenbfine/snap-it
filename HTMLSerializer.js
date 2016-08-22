@@ -208,7 +208,9 @@ var HTMLSerializer = class {
     this.windowHeight = doc.defaultView.innerHeight;
     this.windowWidth = doc.defaultView.innerWidth;
 
-    this.html.push('<!DOCTYPE html>\n');
+    if (doc.doctype) {
+      this.html.push('<!DOCTYPE html>\n');
+    }
 
     if (this.iframeFullyQualifiedName(doc.defaultView) == '0') {
       this.html.push(`<!-- Original window height: ${this.windowHeight}. -->\n`);
