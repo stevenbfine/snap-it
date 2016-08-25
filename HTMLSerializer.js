@@ -147,7 +147,7 @@ var HTMLSerializer = class {
     /**
      * @private {Object<string, Object<string, string>>} The keys represent the
      *     id of an Element.  The value is a map of that Element's style
-     *     attribute property names to values.
+     *     attribute property names to property values.
      */
     this.idToStyleMap = {};
 
