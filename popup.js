@@ -154,7 +154,9 @@ function minimizeStyle(message, doc, element, id, index) {
   for (var i = 0; i < maxNumberOfIterations; i++) {
     var currentStyleAttribute = [];
     for (var property in requiredStyleMap) {
-      currentStyleAttribute.push(property + ':' + requiredStyleMap[property] + ';');
+      currentStyleAttribute.push(
+        property + ':' + requiredStyleMap[property] + ';'
+      );
     }
     element.setAttribute('style', currentStyleAttribute.join(' '));
     var currentComputedStyle = doc.defaultView.getComputedStyle(element, null);
