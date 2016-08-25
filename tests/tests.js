@@ -535,17 +535,23 @@ QUnit.test('minimizeStyles', function(assert) {
   var message = {
     'html': [
         '<div id="myId"',
-        'style="animation-delay: 0s; width: 5px;" ',
+        'style="animation-delay:0s; width:5px;" ',
         '></div>'
     ],
     'frameHoles': null,
     'idToStyleIndex': {"myId": 1},
+    'idToStyleMap': {
+      'myId': {
+        'animation-delay': '0s',
+        'width': '5px'
+      }
+    },
     'windowHeight': 5,
     'windowWidth': 5,
     'frameIndex': '0'
   };
   minimizeStyles(message);
-  assert.equal(message.html[1], 'style="width: 5px;" ');
+  assert.equal(message.html[1], 'style="width:5px;" ');
 });
 
 QUnit.test('minimizeStyle', function(assert) {
@@ -562,12 +568,18 @@ QUnit.test('minimizeStyle', function(assert) {
     ],
     'frameHoles': null,
     'idToStyleIndex': {"myId": 1},
+    'idToStyleMap': {
+      'myId': {
+        'animation-delay': '0s',
+        'width': '5px'
+      }
+    },
     'windowHeight': 5,
     'windowWidth': 5,
     'frameIndex': '0'
   };
-  minimizeStyle(message, document, div, 1);
-  assert.equal(message.html[1], 'style="width: 5px;" ');
+  minimizeStyle(message, document, div, 'myId', 1);
+  assert.equal(message.html[1], 'style="width:5px;" ');
 });
 
 QUnit.test('serialize tree: end-to-end, no style', function(assert) {
@@ -584,6 +596,11 @@ QUnit.test('serialize tree: end-to-end, no style', function(assert) {
     'html': serializer.html,
     'frameHoles': serializer.frameHoles,
     'idToStyleIndex': serializer.idToStyleIndex,
+    'idToStyleMap': {
+      'snap-it0': {
+        'animation-delay': '0s'
+      }
+    },
     'windowHeight': serializer.windowHeight,
     'windowWidth': serializer.windowWidth,
     'frameIndex': serializer.iframeFullyQualifiedName(win)
@@ -609,20 +626,41 @@ QUnit.test('serialize tree: end-to-end, style', function(assert) {
     'html': serializer.html,
     'frameHoles': serializer.frameHoles,
     'idToStyleIndex': serializer.idToStyleIndex,
+    'idToStyleMap': {
+      'snap-it0': {
+        'animation-delay': '0s',
+        'border-bottom-color': 'rgb(0, 0, 255)',
+        'border-bottom-style': 'solid',
+        'border-bottom-width': '4px',
+        'border-left-color': 'rgb(0, 0, 255)',
+        'border-left-style': 'solid',
+        'border-left-width': '4px',
+        'border-right-color': 'rgb(0, 0, 255)',
+        'border-right-style': 'solid',
+        'border-right-width': '4px',
+        'border-top-color': 'rgb(0, 0, 255)',
+        'border-top-style': 'solid',
+        'border-top-width': '4px',
+        'width': '276px',
+        'perspective-origin': '142px 24px',
+        'transform-origin': '142px 24px'
+      }
+    },
     'windowHeight': serializer.windowHeight,
     'windowWidth': serializer.windowWidth,
     'frameIndex': serializer.iframeFullyQualifiedName(win)
   };
   var html = unescapeHTML(outputHTMLString([message]), 1);
+  console.log(html);
   assert.equal(
     html,
-    '<div style="border-bottom-color: rgb(0, 0, 255); border-bottom-style: ' +
-    'solid; border-bottom-width: 4px; border-left-color: rgb(0, 0, 255); ' +
-    'border-left-style: solid; border-left-width: 4px; border-right-color: ' +
-    'rgb(0, 0, 255); border-right-style: solid; border-right-width: 4px; ' +
-    'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' + 
-    'border-top-width: 4px; width: 276px; perspective-origin: 142px 24px; ' +
-    'transform-origin: 142px 24px; " id="snap-it0" >hello world</div>'
+    '<div style="border-bottom-color:rgb(0, 0, 255); border-bottom-style:' +
+    'solid; border-bottom-width:4px; border-left-color:rgb(0, 0, 255); ' +
+    'border-left-style:solid; border-left-width:4px; border-right-color:' +
+    'rgb(0, 0, 255); border-right-style:solid; border-right-width:4px; ' +
+    'border-top-color:rgb(0, 0, 255); border-top-style:solid; ' + 
+    'border-top-width:4px; width:276px; perspective-origin:142px 24px; ' +
+    'transform-origin:142px 24px;" id="snap-it0" >hello world</div>'
   );
 });
 
@@ -637,19 +675,26 @@ QUnit.test('processTree: head tag', function(assert) {
 QUnit.test('minimizeStyles: root html tag', function(assert) {
   var message = {
     'html': [
-        '<html',
+        '<html id="myId" ',
         'style="animation-delay: 0s; width: 5px;" ',
         '></html>'
     ],
     'frameHoles': null,
     'idToStyleIndex': {},
+    'idToStyleMap': {
+      'myId': {
+        'animation-delay': '0s',
+        'width': '5px'
+      }
+    },
     'windowHeight': 5,
     'windowWidth': 5,
+    'rootId': 'myId',
     'rootStyleIndex': 1,
     'frameIndex': '0'
   };
   minimizeStyles(message);
-  assert.equal(message.html[1], 'style="width: 5px;" ');
+  assert.equal(message.html[1], 'style="width:5px;" ');
 });
 
 QUnit.test('processAttributes: escaping characters', function(assert) {
@@ -688,4 +733,10 @@ QUnit.test('processDocument: no doctype tag', function(assert) {
   fixture.appendChild(iframe);
   serializer.processDocument(iframe.contentDocument);
   assert.notEqual(serializer.html[0], '<!DOCTYPE html>\n');
+});
+
+QUnit.test('escapedQuote', function(assert) {
+  assert.equal(escapedQuote(0), '"');
+  assert.equal(escapedQuote(1), '&quot;');
+  assert.equal(escapedQuote(3), '&amp;amp;quot;');
 });

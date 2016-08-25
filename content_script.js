@@ -8,8 +8,10 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
     'html': htmlSerializer.html,
     'frameHoles': htmlSerializer.frameHoles,
     'idToStyleIndex': htmlSerializer.idToStyleIndex,
+    'idToStyleMap': htmlSerializer.idToStyleMap,
     'windowHeight': htmlSerializer.windowHeight,
     'windowWidth': htmlSerializer.windowWidth,
+    'rootId': htmlSerializer.rootId,
     'rootStyleIndex': htmlSerializer.rootStyleIndex,
     'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };
