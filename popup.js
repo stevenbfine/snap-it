@@ -151,6 +151,11 @@ function minimizeStyle(message, doc, element, id, index) {
   var requiredStyleMap = {};
   var maxNumberOfIterations = 5;
 
+  // We compare the computed style before and after removing the style attribute
+  // and accumulate the differences in |requiredStyleMap|. Because some
+  // properties affect other properties, such as boder-style: solid causing a
+  // change in border-width, we do this iteratively until a fixed-point is
+  // reached (or |maxNumberOfIterations| is hit).
   for (var i = 0; i < maxNumberOfIterations; i++) {
     var currentStyleAttribute = [];
     for (var property in requiredStyleMap) {
