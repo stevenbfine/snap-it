@@ -160,7 +160,7 @@ function minimizeStyle(message, doc, element, id, index) {
     var currentStyleAttribute = [];
     for (var property in requiredStyleMap) {
       currentStyleAttribute.push(
-        property + ':' + requiredStyleMap[property] + ';'
+        property + ': ' + requiredStyleMap[property] + ';'
       );
     }
     element.setAttribute('style', currentStyleAttribute.join(' '));
@@ -181,7 +181,7 @@ function minimizeStyle(message, doc, element, id, index) {
 
   var finalStyleAttribute = [];
   for (var property in requiredStyleMap) {
-    finalStyleAttribute.push(property + ':' + requiredStyleMap[property] + ';');
+    finalStyleAttribute.push(property + ': ' + requiredStyleMap[property] + ';');
   }
   var style = finalStyleAttribute.join(' ');
 
