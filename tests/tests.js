@@ -651,7 +651,6 @@ QUnit.test('serialize tree: end-to-end, style', function(assert) {
     'frameIndex': serializer.iframeFullyQualifiedName(win)
   };
   var html = unescapeHTML(outputHTMLString([message]), 1);
-  console.log(html);
   assert.equal(
     html,
     '<div style="border-bottom-color:rgb(0, 0, 255); border-bottom-style:' +
