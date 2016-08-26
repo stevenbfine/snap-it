@@ -183,6 +183,49 @@ var HTMLSerializer = class {
   }
 
   /**
+   * Takes an html document, and populates this objects fields such that it can
+   * eventually be converted into an html file.
+   *
+   * @param {Document} doc The Document to serialize.
+   */ 
+  processDocument(doc) {
+    this.windowHeight = doc.defaultView.innerHeight;
+    this.windowWidth = doc.defaultView.innerWidth;
+
+    if (doc.doctype) {
+      this.html.push('<!DOCTYPE html>\n');
+    }
+
+    if (this.iframeFullyQualifiedName(doc.defaultView) == '0') {
+      this.html.push(
+          `<!-- Original window height: ${this.windowHeight}. -->\n`);
+      this.html.push(`<!-- Original window width: ${this.windowWidth}. -->\n`);
+    }
+
+    this.loadFonts(doc);
+    this.pseudoElementPlaceHolderIndex = this.html.length;
+    this.html.push(''); // Entry where pseudo element style tag will go.
+    this.pseudoElementTestingStyleIndex = this.html.length;
+    this.html.push(''); // Entry where minimized pseudo elements can be tested.
+
+    var nodes = doc.childNodes;
+    for (var i = 0, node; node = nodes[i]; i++) {
+      if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
+        this.processTree(node);
+      }
+    }
+    var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
+    this.html[this.pseudoElementPlaceHolderIndex] = pseudoElements;
+
+    this.pseudoElementTestingStyleId = this.generateId(doc);
+    var style = `<style id="${this.pseudoElementTestingStyleId}"></style>`;
+    var nestingDepth = this.windowDepth(doc.defaultView);
+    var escapedQuote = this.escapedCharacter('"', nestingDepth);
+    style = style.replace(/"/g, escapedQuote);
+    this.html[this.pseudoElementTestingStyleIndex] = style;
+  }
+
+  /**
    * Takes an html node, and populates this object's fields such that it can
    * eventually be converted into an html text file.
    *
@@ -229,50 +272,6 @@ var HTMLSerializer = class {
         this.html.push(`</${tagName.toLowerCase()}>`);
       }
     }
-  }
-
-  /**
-   * Takes an html document, and populates this objects fields such that it can
-   * eventually be converted into an html file.
-   *
-   * @param {Document} doc The Document to serialize.
-   */ 
-  processDocument(doc) {
-    this.windowHeight = doc.defaultView.innerHeight;
-    this.windowWidth = doc.defaultView.innerWidth;
-
-    if (doc.doctype) {
-      this.html.push('<!DOCTYPE html>\n');
-    }
-
-    if (this.iframeFullyQualifiedName(doc.defaultView) == '0') {
-      this.html.push(
-        `<!-- Original window height: ${this.windowHeight}. -->\n`
-      );
-      this.html.push(`<!-- Original window width: ${this.windowWidth}. -->\n`);
-    }
-
-    this.loadFonts(doc);
-    this.pseudoElementPlaceHolderIndex = this.html.length;
-    this.html.push(''); // Entry where pseudo element style tag will go.
-    this.pseudoElementTestingStyleIndex = this.html.length;
-    this.html.push(''); // Entry where minimized pseudo elements can be tested.
-
-    var nodes = doc.childNodes;
-    for (var i = 0, node; node = nodes[i]; i++) {
-      if (node.nodeType != Node.DOCUMENT_TYPE_NODE) {
-        this.processTree(node);
-      }
-    }
-    var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
-    this.html[this.pseudoElementPlaceHolderIndex] = pseudoElements;
-
-    this.pseudoElementTestingStyleId = this.generateId(doc);
-    var style = `<style id="${this.pseudoElementTestingStyleId}"></style>`;
-    var nestingDepth = this.windowDepth(doc.defaultView);
-    var escapedQuote = this.escapedCharacter('"', nestingDepth);
-    style = style.replace(/"/g, escapedQuote);
-    this.html[this.pseudoElementTestingStyleIndex] = style;
   }
 
   /**
