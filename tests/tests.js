@@ -535,7 +535,7 @@ QUnit.test('minimizeStyles', function(assert) {
   var message = {
     'html': [
         '<div id="myId"',
-        'style="animation-delay:0s; width:5px;" ',
+        'style="animation-delay: 0s; width: 5px;" ',
         '></div>'
     ],
     'frameHoles': null,
@@ -551,7 +551,7 @@ QUnit.test('minimizeStyles', function(assert) {
     'frameIndex': '0'
   };
   minimizeStyles(message);
-  assert.equal(message.html[1], 'style="width:5px;" ');
+  assert.equal(message.html[1], 'style="width: 5px;" ');
 });
 
 QUnit.test('minimizeStyle', function(assert) {
@@ -579,7 +579,7 @@ QUnit.test('minimizeStyle', function(assert) {
     'frameIndex': '0'
   };
   minimizeStyle(message, document, div, 'myId', 1);
-  assert.equal(message.html[1], 'style="width:5px;" ');
+  assert.equal(message.html[1], 'style="width: 5px;" ');
 });
 
 QUnit.test('serialize tree: end-to-end, no style', function(assert) {
@@ -653,13 +653,13 @@ QUnit.test('serialize tree: end-to-end, style', function(assert) {
   var html = unescapeHTML(outputHTMLString([message]), 1);
   assert.equal(
     html,
-    '<div style="border-bottom-color:rgb(0, 0, 255); border-bottom-style:' +
-    'solid; border-bottom-width:4px; border-left-color:rgb(0, 0, 255); ' +
-    'border-left-style:solid; border-left-width:4px; border-right-color:' +
-    'rgb(0, 0, 255); border-right-style:solid; border-right-width:4px; ' +
-    'border-top-color:rgb(0, 0, 255); border-top-style:solid; ' + 
-    'border-top-width:4px; width:276px; perspective-origin:142px 24px; ' +
-    'transform-origin:142px 24px;" id="snap-it0" >hello world</div>'
+    '<div style="border-bottom-color: rgb(0, 0, 255); border-bottom-style: ' +
+    'solid; border-bottom-width: 4px; border-left-color: rgb(0, 0, 255); ' +
+    'border-left-style: solid; border-left-width: 4px; border-right-color: ' +
+    'rgb(0, 0, 255); border-right-style: solid; border-right-width: 4px; ' +
+    'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' + 
+    'border-top-width: 4px; width: 276px; perspective-origin: 142px 24px; ' +
+    'transform-origin: 142px 24px;" id="snap-it0" >hello world</div>'
   );
 });
 
@@ -693,7 +693,7 @@ QUnit.test('minimizeStyles: root html tag', function(assert) {
     'frameIndex': '0'
   };
   minimizeStyles(message);
-  assert.equal(message.html[1], 'style="width:5px;" ');
+  assert.equal(message.html[1], 'style="width: 5px;" ');
 });
 
 QUnit.test('processAttributes: escaping characters', function(assert) {
