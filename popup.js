@@ -173,6 +173,7 @@ function minimizePseudoElementStyle(
     // properties affect other properties, such as border-style: solid causing a
     // change in border-width, we do this iteratively until a fixed-point is
     // reached (or |maxNumberOfIterations| is hit).
+    // TODO(sfine): Unify this logic with minimizeStyles.
     for (var i = 0; i < maxNumberOfIterations; i++) {
       var currentPseudoElement = ['#' + message.unusedId + ':' + type + '{'];
       currentPseudoElement.push(buildStyleAttribute(requiredStyleMap));
