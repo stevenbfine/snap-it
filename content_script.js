@@ -13,6 +13,14 @@ function sendHTMLSerializerToExtension(htmlSerializer) {
     'windowWidth': htmlSerializer.windowWidth,
     'rootId': htmlSerializer.rootId,
     'rootStyleIndex': htmlSerializer.rootStyleIndex,
+    'pseudoElementSelectorToCSSMap':
+        htmlSerializer.pseudoElementSelectorToCSSMap,
+    'pseudoElementPlaceHolderIndex':
+        htmlSerializer.pseudoElementPlaceHolderIndex,
+    'pseudoElementTestingStyleIndex':
+        htmlSerializer.pseudoElementStyleTestingIndex,
+    'pseudoElementTestingStyleId': htmlSerializer.pseudoElementTestingStyleId,
+    'unusedId': htmlSerializer.generateId(document),
     'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
   };
   chrome.runtime.sendMessage(result);

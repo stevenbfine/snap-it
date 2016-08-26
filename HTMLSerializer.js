@@ -116,10 +116,29 @@ var HTMLSerializer = class {
     this.pseudoElementPlaceHolderIndex;
 
     /**
+     * @private {number} The id of a style element that can be used to test
+     *     minimized pseudo element declarations in popup.js.
+     */
+    this.pseudoElementTestingStyleId;
+
+    /**
+     * @private {number} The index in |this.html| where a style element will be
+     *     placed to test minimized pseudo element declarations in popup.js.
+     */
+    this.pseudoElementTestingStyleIndex;
+
+    /**
      * @private {Array<string>} Each element of this array is a string
      *     representing CSS that defines a single pseudo element.
      */
     this.pseudoElementCSS = [];
+
+    /**
+     * @private {Object<string, Object<string, string>>} The keys represent a
+     *     pseudo element selector. The value is a map of that pseudo element's
+     *     style property names to property values.
+     */
+    this.pseudoElementSelectorToCSSMap = {};
 
     /**
      * @private {Function} A funtion that generates a unique string each time it
@@ -195,6 +214,8 @@ var HTMLSerializer = class {
         this.html.push('');
         this.pseudoElementPlaceHolderIndex = this.html.length;
         this.html.push('');
+        this.pseudoElementTestingStyleIndex = this.html.length;
+        this.html.push('');
       }
 
       var children = node.childNodes;
@@ -225,13 +246,17 @@ var HTMLSerializer = class {
     }
 
     if (this.iframeFullyQualifiedName(doc.defaultView) == '0') {
-      this.html.push(`<!-- Original window height: ${this.windowHeight}. -->\n`);
+      this.html.push(
+        `<!-- Original window height: ${this.windowHeight}. -->\n`
+      );
       this.html.push(`<!-- Original window width: ${this.windowWidth}. -->\n`);
     }
 
     this.loadFonts(doc);
     this.pseudoElementPlaceHolderIndex = this.html.length;
     this.html.push(''); // Entry where pseudo element style tag will go.
+    this.pseudoElementTestingStyleIndex = this.html.length;
+    this.html.push(''); // Entry where minimized pseudo elements can be tested.
 
     var nodes = doc.childNodes;
     for (var i = 0, node; node = nodes[i]; i++) {
@@ -241,13 +266,19 @@ var HTMLSerializer = class {
     }
     var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
     this.html[this.pseudoElementPlaceHolderIndex] = pseudoElements;
+
+    this.pseudoElementTestingStyleId = this.generateId(doc);
+    var style = `<style id="${this.pseudoElementTestingStyleId}"></style>`;
+    var nestingDepth = this.windowDepth(doc.defaultView);
+    var escapedQuote = this.escapedCharacter('"', nestingDepth);
+    style = style.replace(/"/g, escapedQuote);
+    this.html[this.pseudoElementTestingStyleIndex] = style;
   }
 
   /**
    * Takes an HTML element, and if it has pseudo elements listed in
-   * |this.PSEUDO_ELEMENTS| they will be added to |this.pseudoElementCSS|.
-   * Additionally, if |element| doesn't have an id it will be given one in
-   * |this.html|.
+   * |this.PSEUDO_ELEMENTS| they will be added to |this.pseudoElementCSS| and
+   * |this.pseudoElementSelectorToCSSMap|.
    *
    * @param {Element} element The Element whose pseudo elements will be
    *     processed.
@@ -270,6 +301,18 @@ var HTMLSerializer = class {
         this.pseudoElementCSS.push(
           '#' + id + ':' + pseudo + '{' + styleText + '} '
         );
+
+        var styleMap = {};
+        for (var i = 0; i < style.length; i++) {
+          var propertyName = style.item(i);
+          var propertyValue = style.getPropertyValue(propertyName);
+          propertyValue = this.escapedUnicodeString(
+            propertyValue,
+            this.INPUT_TEXT_TYPE.CSS
+          );
+          styleMap[propertyName] = propertyValue;
+        }
+        this.pseudoElementSelectorToCSSMap['#' + id + ':' + pseudo] = styleMap;
       }
     }
   }

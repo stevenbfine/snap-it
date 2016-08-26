@@ -754,7 +754,7 @@ QUnit.test('updateMinimizedStyleMap: no update', function(assert) {
   var fixture = document.getElementById('qunit-fixture');
   var div = document.createElement('div');
   div.setAttribute('id', 'myId');
-  div.setAttribute('style', 'animation-delay: 0s; width: 5px;');
+  div.setAttribute('style', 'width: 5px;');
   fixture.appendChild(div);
   var originalStyleMap = {
     'animation-delay': '0s',
@@ -778,7 +778,6 @@ QUnit.test('updateMinimizedStyleMap: update', function(assert) {
   var fixture = document.getElementById('qunit-fixture');
   var div = document.createElement('div');
   div.setAttribute('id', 'myId');
-  div.setAttribute('style', 'animation-delay: 0s; width: 5px;');
   fixture.appendChild(div);
   var originalStyleMap = {
     'animation-delay': '0s',
@@ -794,4 +793,75 @@ QUnit.test('updateMinimizedStyleMap: update', function(assert) {
   assert.ok(updated);
   assert.equal(Object.keys(requiredStyleMap).length, 1);
   assert.equal(requiredStyleMap.width, '5px');
+});
+
+QUnit.test('minimizePseudoElementStyle', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.setAttribute('id', 'divId');
+  var pseudoElementStyle = document.createElement('style');
+  pseudoElementStyle.innerHTML =
+      '#divId::before{animation-delay: 0s; content:"hello"}';
+  var testingStyle = document.createElement('style');
+  testingStyle.setAttribute('id', 'styleId');
+  fixture.appendChild(div);
+  fixture.appendChild(pseudoElementStyle);
+  fixture.appendChild(testingStyle);
+  var message = {
+    'pseudoElementSelectorToCSSMap': {
+      '#divId::before': {
+        'animation-delay': '0s',
+        'content': 'hello'
+      }
+    },
+    'pseudoElementTestingStyleId': 'styleId',
+    'unusedId': 'unusedId',
+    'frameIndex': '0'
+  }
+  var finalPseudoElementCSS = [];
+  minimizePseudoElementStyle(
+      message,
+      document,
+      '#divId::before',
+      finalPseudoElementCSS);
+  assert.equal(
+      finalPseudoElementCSS.join(' '),
+      '#divId::before{ content: hello; }');
+});
+
+QUnit.test('minimizeStyles: pseudo elements', function(assert) {
+  var message = {
+    'html': [
+        '<div id="divId"',
+        'style="animation-delay: 0s; width: 5px;" ',
+        '></div>',
+        '<style>#divId::before{animation-delay: 0s; content:"hello"}</style>',
+        '<style id="styleId"></style>'
+    ],
+    'pseudoElementSelectorToCSSMap': {
+      '#divId::before': {
+        'animation-delay': '0s',
+        'content': 'hello'
+      }
+    },
+    'pseudoElementPlaceHolderIndex': 3,
+    'pseudoElementTestingStyleIndex': 4,
+    'pseudoElementTestingStyleId': 'styleId',
+    'unusedId': 'unusedId',
+    'frameHoles': null,
+    'idToStyleIndex': {"divId": 1},
+    'idToStyleMap': {
+      'divId': {
+        'animation-delay': '0s',
+        'width': '5px'
+      }
+    },
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'frameIndex': '0'
+  };
+  minimizeStyles(message);
+  assert.equal(
+      message.html[3],
+      '<style>#divId::before{ content: hello; }</style>');
 });

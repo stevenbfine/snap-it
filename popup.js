@@ -113,6 +113,16 @@ function minimizeStyles(message) {
   iframe.contentDocument.documentElement.innerHTML = html;
   var doc = iframe.contentDocument;
 
+  // Remove entry in |message.html| where extra style element was specified.
+  message.html[message.pseudoElementTestingStyleIndex] = '';
+  var finalPseudoElements = [];
+  for (var selector in message.pseudoElementSelectorToCSSMap) {
+    minimizePseudoElementStyle(message, doc, selector, finalPseudoElements);
+  }
+
+  message.html[message.pseudoElementPlaceHolderIndex] =
+      `<style>${finalPseudoElements.join(' ')}</style>`;
+
   if (message.rootStyleIndex) {
     minimizeStyle(
       message,
@@ -132,6 +142,68 @@ function minimizeStyles(message) {
   }
   iframe.remove();
 }
+
+/**
+ * Removes all style attribute properties that are unneeded for a single
+ *     pseudo element.
+ *
+ * @param {Object} message The message Object that contains the pseudo element
+ *     whose style attributes should be minimized.
+ * @param {Document} doc The Document that contains the rendered HTML.
+ * @param {string} selector The CSS selector for the pseudo element.
+ * @param {Array<string>} finalPseudoElements An array to contain the final
+ *     declaration of pseudo elements.  It will be updated to reflect the pseudo
+ *     element that is being processed.
+ */
+function minimizePseudoElementStyle(
+    message,
+    doc,
+    selector,
+    finalPseudoElements) {
+  var maxNumberOfIterations = 5;
+  var match = selector.match(/^#(.*):(:.*)$/);
+  var id = match[1];
+  var type = match[2];
+  var element = doc.getElementById(id);
+  if (element) {
+    var originalStyleMap = message.pseudoElementSelectorToCSSMap[selector];
+    var requiredStyleMap = {};
+    // We compare the computed style before and after removing the pseudo
+    // element and accumulate the differences in |requiredStyleMap|. The pseudo
+    // element is removed by changing the element id. Because some properties
+    // affect other properties, such as border-style: solid causing a change in
+    // border-width, we do this iteratively until a fixed-point is reached (or
+    // |maxNumberOfIterations| is hit).
+    // TODO(sfine): Unify this logic with minimizeStyles.
+    for (var i = 0; i < maxNumberOfIterations; i++) {
+      var currentPseudoElement = ['#' + message.unusedId + ':' + type + '{'];
+      currentPseudoElement.push(buildStyleAttribute(requiredStyleMap));
+      currentPseudoElement.push('}');
+      element.setAttribute('id', message.unusedId);
+      var style = doc.getElementById(message.pseudoElementTestingStyleId);
+      style.innerHTML = currentPseudoElement.join(' ');
+      var foundNewRequiredStyle = updateMinimizedStyleMap(
+          doc,
+          element,
+          originalStyleMap,
+          requiredStyleMap,
+          type);
+      if (!foundNewRequiredStyle) {
+        break;
+      }
+    }
+    element.setAttribute('id', id);
+    finalPseudoElements.push('#' + id + ':' + type + '{');
+    var finalPseudoElement = buildStyleAttribute(requiredStyleMap);
+    var nestingDepth = message.frameIndex.split('.').length - 1;
+    finalPseudoElement = finalPseudoElement.replace(
+        /"/g,
+        escapedQuote(nestingDepth));
+    finalPseudoElements.push(finalPseudoElement);
+    finalPseudoElements.push('}');
+  }
+}
+
 
 /**
  * Removes all style attribute properties that are unneeded for a single
@@ -158,12 +230,14 @@ function minimizeStyle(message, doc, element, id, index) {
   // change in border-width, we do this iteratively until a fixed-point is
   // reached (or |maxNumberOfIterations| is hit).
   for (var i = 0; i < maxNumberOfIterations; i++) {
+    element.setAttribute('style', buildStyleAttribute(requiredStyleMap));
     var foundNewRequiredStyle = updateMinimizedStyleMap(
         doc,
         element,
         originalStyleMap,
         requiredStyleMap,
         null);
+    element.setAttribute('style', buildStyleAttribute(originalStyleMap));
     if (!foundNewRequiredStyle) {
       break;
     }
@@ -208,7 +282,6 @@ function updateMinimizedStyleMap(
     originalStyleMap,
     minimizedStyleMap,
     pseudo) {
-  element.setAttribute('style', buildStyleAttribute(minimizedStyleMap));
   var currentComputedStyle = doc.defaultView.getComputedStyle(element, pseudo);
   var foundNewRequiredStyle = false;
   for (var property in originalStyleMap) {
@@ -218,7 +291,6 @@ function updateMinimizedStyleMap(
       foundNewRequiredStyle = true;
     }
   }
-  element.setAttribute('style', buildStyleAttribute(originalStyleMap));
   return foundNewRequiredStyle;
 }
 
