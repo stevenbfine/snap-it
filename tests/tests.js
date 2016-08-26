@@ -739,3 +739,59 @@ QUnit.test('escapedQuote', function(assert) {
   assert.equal(escapedQuote(1), '&quot;');
   assert.equal(escapedQuote(3), '&amp;amp;quot;');
 });
+
+QUnit.test('buildStyleAttribute', function(assert) {
+  var styleMap = {
+    'color': 'blue',
+    'background-color': 'red'
+  }
+  assert.equal(
+      buildStyleAttribute(styleMap),
+      'color: blue; background-color: red;');
+});
+
+QUnit.test('updateMinimizedStyleMap: no update', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.setAttribute('id', 'myId');
+  div.setAttribute('style', 'animation-delay: 0s; width: 5px;');
+  fixture.appendChild(div);
+  var originalStyleMap = {
+    'animation-delay': '0s',
+    'width': '5px'
+  };
+  var requiredStyleMap = {
+    'width': '5px'
+  };
+  var updated = updateMinimizedStyleMap(
+      document,
+      div,
+      originalStyleMap,
+      requiredStyleMap,
+      null);
+  assert.notOk(updated);
+  assert.equal(Object.keys(requiredStyleMap).length, 1);
+  assert.equal(requiredStyleMap.width, '5px');
+});
+
+QUnit.test('updateMinimizedStyleMap: update', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var div = document.createElement('div');
+  div.setAttribute('id', 'myId');
+  div.setAttribute('style', 'animation-delay: 0s; width: 5px;');
+  fixture.appendChild(div);
+  var originalStyleMap = {
+    'animation-delay': '0s',
+    'width': '5px'
+  };
+  var requiredStyleMap = {};
+  var updated = updateMinimizedStyleMap(
+      document,
+      div,
+      originalStyleMap,
+      requiredStyleMap,
+      null);
+  assert.ok(updated);
+  assert.equal(Object.keys(requiredStyleMap).length, 1);
+  assert.equal(requiredStyleMap.width, '5px');
+});
