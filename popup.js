@@ -113,14 +113,20 @@ function minimizeStyles(message) {
   var doc = iframe.contentDocument;
 
   if (message.rootStyleIndex) {
-    minimizeStyle(message, doc, doc.documentElement, message.rootStyleIndex);
+    minimizeStyle(
+      message,
+      doc,
+      doc.documentElement,
+      message.rootId,
+      message.rootStyleIndex
+    );
   }
 
   for (var id in message.idToStyleIndex) {
     var index = message.idToStyleIndex[id];
     var element = doc.getElementById(id);
     if (element) {
-      minimizeStyle(message, doc, element, index);
+      minimizeStyle(message, doc, element, id, index);
     }
   }
   iframe.remove();
@@ -135,45 +141,58 @@ function minimizeStyles(message) {
  * @param {Document} doc The Document that contains the rendered HTML.
  * @param {Element} element The Element whose style attributes should be
  *     minimized.
+ * @param {string} id The id of the Element in the final page.
  * @param {number} index The index in |message.html| where the Element's style
  *     attribute is specified.
  */
-function minimizeStyle(message, doc, element, index) {
-  var originalStyle = element.getAttribute('style');
-  element.removeAttribute('style');
-  var unstyledStyle = doc.defaultView.getComputedStyle(element, null);
+function minimizeStyle(message, doc, element, id, index) {
+  var originalStyleAttribute = element.getAttribute('style');
+  var originalStyleMap = message.idToStyleMap[id];
+  var requiredStyleMap = {};
+  var maxNumberOfIterations = 5;
 
-  var fullStyleDeclaration = message.html[index];
-  var stylePrefix;
-  var styleSuffix;
-  // Remove style declaration from style attribute.
-  var style = fullStyleDeclaration.replace(
-    /^style=("|&(amp;)*?quot;)(.*)("|&(amp;)*?quot;) ?$/,
-    function(match, quote, p2, content) {
-      stylePrefix = 'style=' + quote;
-      styleSuffix = quote + ' ';
-      return content;
+  // We compare the computed style before and after removing the style attribute
+  // and accumulate the differences in |requiredStyleMap|. Because some
+  // properties affect other properties, such as boder-style: solid causing a
+  // change in border-width, we do this iteratively until a fixed-point is
+  // reached (or |maxNumberOfIterations| is hit).
+  for (var i = 0; i < maxNumberOfIterations; i++) {
+    var currentStyleAttribute = [];
+    for (var property in requiredStyleMap) {
+      currentStyleAttribute.push(
+        property + ': ' + requiredStyleMap[property] + ';'
+      );
     }
-  );
-  // Remove property value pair if unstyledStyle has the same property
-  // value.
-  style = style.replace(
-    /([\S]*?): ("|&(amp;)*?quot;)?(.*?)("|&(amp;)*?quot;)?; ?/g,
-    function(match, property, p2, p3, value) {
-      unstyledValue = unstyledStyle[property].replace(/"/g, '');
-      if (unstyledValue == value) {
-        return '';
-      } else {
-        return match;
+    element.setAttribute('style', currentStyleAttribute.join(' '));
+    var currentComputedStyle = doc.defaultView.getComputedStyle(element, null);
+    var foundNewRequiredStyle = false;
+    for (var property in originalStyleMap) {
+      var originalValue = originalStyleMap[property];
+      if (originalValue != currentComputedStyle.getPropertyValue(property)) {
+        requiredStyleMap[property] = originalValue;
+        foundNewRequiredStyle = true;
       }
     }
-  );
+    if (!foundNewRequiredStyle) {
+      break;
+    }
+  }
+  element.setAttribute('style', originalStyleAttribute);
+
+  var finalStyleAttribute = [];
+  for (var property in requiredStyleMap) {
+    finalStyleAttribute.push(property + ': ' + requiredStyleMap[property] + ';');
+  }
+  var style = finalStyleAttribute.join(' ');
+
   if (style) {
-    message.html[index] = stylePrefix + style + styleSuffix;
+    var nestingDepth = message.frameIndex.split('.').length - 1;
+    style = style.replace(/"/g, escapedQuote(nestingDepth + 1));
+    var quote = escapedQuote(nestingDepth);
+    message.html[index] = `style=${quote}${style}${quote} `;
   } else {
     message.html[index] = '';
   }
-  element.setAttribute('style', originalStyle);
 }
 
 /**
@@ -191,4 +210,21 @@ function unescapeHTML(html, nestingDepth) {
     html = div.childNodes[0].attributes.srcdoc.value;
   }
   return html;
+}
+
+/**
+ * Calculate the correct encoding of a quotation mark that should be used given
+ * the nesting depth of the window in the frame tree.
+ *
+ * @param {number} depth The nesting depth of the appropriate window in the
+ *     frame tree.
+ * @return {string} The correctly escaped string. 
+ */
+function escapedQuote(depth) {
+  if (depth == 0) {
+    return '"';
+  } else {
+    var arr = 'amp;'.repeat(depth-1);
+    return '&' + arr + 'quot;';
+  }
 }

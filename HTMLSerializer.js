@@ -145,10 +145,22 @@ var HTMLSerializer = class {
     this.idToStyleIndex = {};
 
     /**
+     * @private {Object<string, Object<string, string>>} The keys represent the
+     *     id of an Element.  The value is a map of that Element's style
+     *     attribute property names to property values.
+     */
+    this.idToStyleMap = {};
+
+    /**
      * @private {number} The index in |this.html| at which the html element's
      *     style attribute is specified.
      */
     this.rootStyleIndex;
+
+    /**
+     * @private {string} The assigned id of the html element.
+     */
+    this.rootId;
   }
 
   /**
@@ -288,13 +300,19 @@ var HTMLSerializer = class {
    */ 
   processAttributes(element, id) {
     var win = element.ownerDocument.defaultView;
-    var style = win.getComputedStyle(element, null).cssText;
-    var nestingDepth = this.windowDepth(win);
+    var style = win.getComputedStyle(element, null);
+    var styleMap = {};
+    for (var i = 0; i < style.length; i++) {
+      var propertyName = style.item(i);
+      styleMap[propertyName] = style.getPropertyValue(propertyName);
+    }
+    this.idToStyleMap[id] = styleMap;
     this.idToStyleIndex[id] = this.html.length;
     if (element.tagName == 'HTML') {
       this.rootStyleIndex = this.html.length;
+      this.rootId = id;
     }
-    this.processSimpleAttribute(win, 'style', style);
+    this.processSimpleAttribute(win, 'style', style.cssText);
     this.processSimpleAttribute(win, 'id', id);
 
     var attributes = element.attributes;
