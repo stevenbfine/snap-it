@@ -73,13 +73,11 @@ QUnit.test('iframeFullyQualifiedName: single layer', function(assert) {
   fixture.appendChild(childFrame2);
   assert.equal(serializer.iframeFullyQualifiedName(window), '0');
   assert.equal(
-    serializer.iframeFullyQualifiedName(childFrame1.contentWindow),
-    '0.0'
-  );
+      serializer.iframeFullyQualifiedName(childFrame1.contentWindow),
+      '0.0');
   assert.equal(
-    serializer.iframeFullyQualifiedName(childFrame2.contentWindow),
-    '0.1'
-  );
+      serializer.iframeFullyQualifiedName(childFrame2.contentWindow),
+      '0.1');
 });
 
 QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
@@ -93,13 +91,11 @@ QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
   childFrameBody.appendChild(grandChildFrame1);
   childFrameBody.appendChild(grandChildFrame2);
   assert.equal(
-    serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow),
-    '0.0.0'
-  );
+      serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow),
+      '0.0.0');
   assert.equal(
-    serializer.iframeFullyQualifiedName(grandChildFrame2.contentWindow),
-    '0.0.1'
-  );
+      serializer.iframeFullyQualifiedName(grandChildFrame2.contentWindow),
+      '0.0.1');
 });
 
 QUnit.test('processSimpleAttribute: top window', function(assert) {
@@ -147,13 +143,11 @@ QUnit.test('processHoleAttribute: nested window', function(assert) {
   var childFrameWindow = childFrame.contentDocument.defaultView;
   var grandChildFrameWindow = grandChildFrame.contentDocument.defaultView;
   var childValueIndex = serializer.processHoleAttribute(
-    childFrameWindow,
-    'height'
-  );
+      childFrameWindow,
+      'height');
   var grandChildValueIndex = serializer.processHoleAttribute(
-    grandChildFrameWindow,
-    'width'
-  );
+      grandChildFrameWindow,
+      'width');
   assert.equal(childValueIndex, 1);
   assert.equal(serializer.html[0], 'height=&quot;');
   assert.equal(serializer.html[2], '&quot; ');
@@ -247,9 +241,8 @@ QUnit.test('processTree: no closing tag', function(assert) {
   serializer.processTree(img);
   assert.equal(serializer.html[0], '<img ');
   assert.equal(
-    serializer.html[1],
-    `style="${window.getComputedStyle(img, null).cssText}" `
-  );
+      serializer.html[1],
+      `style="${window.getComputedStyle(img, null).cssText}" `);
   assert.equal(serializer.html[3], '>')
   assert.equal(serializer.html.length, 4);
 });
@@ -260,9 +253,8 @@ QUnit.test('processTree: closing tag', function(assert) {
   serializer.processTree(p);
   assert.equal(serializer.html[0], '<p ');
   assert.equal(
-    serializer.html[1],
-    `style="${window.getComputedStyle(p, null).cssText}" `
-  );
+      serializer.html[1],
+      `style="${window.getComputedStyle(p, null).cssText}" `);
   assert.equal(serializer.html[3], '>');
   assert.equal(serializer.html[4], '</p>');
   assert.equal(serializer.html.length, 5);
@@ -334,9 +326,8 @@ QUnit.test('processText: escaped characters', function(assert) {
   fixture.appendChild(node);
   serializer.processText(node);
   assert.equal(
-    serializer.html[0],
-    '&lt;div&gt; with &#39;&amp;&quot;'
-  );
+      serializer.html[0],
+      '&lt;div&gt; with &#39;&amp;&quot;');
 });
 
 QUnit.test('processText: nested escaped characters', function(assert) {
@@ -355,13 +346,11 @@ QUnit.test('processText: nested escaped characters', function(assert) {
   serializer.processText(node1);
   serializer.processText(node2);
   assert.equal(
-    serializer.html[0],
-    '&amp;lt;div&amp;gt; with &amp;#39;&amp;amp;&amp;quot;'
-  );
+      serializer.html[0],
+      '&amp;lt;div&amp;gt; with &amp;#39;&amp;amp;&amp;quot;');
   assert.equal(
-    serializer.html[1],
-    '&amp;amp;lt;div&amp;amp;gt; with &amp;amp;#39;&amp;amp;amp;&amp;amp;quot;'
-  );
+      serializer.html[1],
+      '&amp;amp;lt;div&amp;amp;gt; with &amp;amp;#39;&amp;amp;amp;&amp;amp;quot;');
 });
 
 QUnit.test('processPseudoElements', function(assert) {
@@ -434,9 +423,8 @@ QUnit.test('escapedUnicodeString: html', function(assert) {
   div.appendChild(document.createTextNode('i \u2665 \u0073f'));
   var string = div.childNodes[0].textContent;
   assert.equal(
-    serializer.escapedUnicodeString(string, serializer.INPUT_TEXT_TYPE.HTML),
-    'i &#9829; sf'
-  );
+      serializer.escapedUnicodeString(string, serializer.INPUT_TEXT_TYPE.HTML),
+      'i &#9829; sf');
 });
 
 QUnit.test('escapedUnicodeString: css', function(assert) {
@@ -446,9 +434,8 @@ QUnit.test('escapedUnicodeString: css', function(assert) {
   div.appendChild(document.createTextNode('i \u2665 \u0073f'));
   var string = div.childNodes[0].textContent;
   assert.equal(
-    serializer.escapedUnicodeString(string, serializer.INPUT_TEXT_TYPE.CSS),
-    'i \\2665 sf'
-  );
+      serializer.escapedUnicodeString(string, serializer.INPUT_TEXT_TYPE.CSS),
+      'i \\2665 sf');
 });
 
 QUnit.test('fullyQualifiedFontURL', function(assert) {
@@ -456,29 +443,24 @@ QUnit.test('fullyQualifiedFontURL', function(assert) {
   var href = 'http://www.example.com/path/page/';
   var url1 = '/hello/world/';
   assert.equal(
-    serializer.fullyQualifiedFontURL(href, url1),
-    'http://www.example.com/hello/world/'
-  );
+      serializer.fullyQualifiedFontURL(href, url1),
+      'http://www.example.com/hello/world/');
   var url2 = './hello/world/';
   assert.equal(
-    serializer.fullyQualifiedFontURL(href, url2),
-    'http://www.example.com/path/./hello/world/'
-  );
+      serializer.fullyQualifiedFontURL(href, url2),
+      'http://www.example.com/path/./hello/world/');
   var url3 = '../hello/world/';
   assert.equal(
-    serializer.fullyQualifiedFontURL(href, url3),
-    'http://www.example.com/path/../hello/world/'
-  );
+      serializer.fullyQualifiedFontURL(href, url3),
+      'http://www.example.com/path/../hello/world/');
   var url4 = 'http://www.google.com/';
   assert.equal(
-    serializer.fullyQualifiedFontURL(href, url4),
-    'http://www.google.com/'
-  );
+      serializer.fullyQualifiedFontURL(href, url4),
+      'http://www.google.com/');
   var url5 = 'hello/world/';
   assert.equal(
-    serializer.fullyQualifiedFontURL(href, url5),
-    'http://www.example.com/path/hello/world/'
-  );
+      serializer.fullyQualifiedFontURL(href, url5),
+      'http://www.example.com/path/hello/world/');
 });
 
 QUnit.test('processCSSFonts: no line breaks in declaration', function(assert) {
@@ -488,9 +470,8 @@ QUnit.test('processCSSFonts: no line breaks in declaration', function(assert) {
   var href = 'http://www.example.com/';
   serializer.processCSSFonts(window, href, cssText);
   assert.equal(
-    serializer.fontCSS[0],
-    '@font-face{font-family:Font;src:url("http://www.example.com/hello/")}'
-  );
+      serializer.fontCSS[0],
+      '@font-face{font-family:Font;src:url("http://www.example.com/hello/")}');
 });
 
 QUnit.test('processCSSFonts: line breaks in declaration', function(assert) {
@@ -500,9 +481,8 @@ QUnit.test('processCSSFonts: line breaks in declaration', function(assert) {
   var href = 'http://www.url.com/';
   serializer.processCSSFonts(window, href, cssText);
   assert.equal(
-    serializer.fontCSS[0],
-    '@font-face { font-family:Font;\nsrc:url("http://www.url.com/goodbye/")}'
-  );
+      serializer.fontCSS[0],
+      '@font-face { font-family:Font;\nsrc:url("http://www.url.com/goodbye/")}');
 });
 
 QUnit.test('loadFonts', function(assert) {
@@ -511,18 +491,16 @@ QUnit.test('loadFonts', function(assert) {
   assert.equal(serializer.html[0], '');
   assert.equal(serializer.fontPlaceHolderIndex, 0);
   assert.equal(
-    serializer.crossOriginStyleSheets[0],
-    'https://code.jquery.com/qunit/qunit-2.0.0.css'
-  );
+      serializer.crossOriginStyleSheets[0],
+      'https://code.jquery.com/qunit/qunit-2.0.0.css');
 });
 
 QUnit.test('escapedCharacterString', function(assert) {
   var serializer =  new HTMLSerializer();
   var str = serializer.escapedCharacterString(`hello &>'<& "`, 2);
   assert.equal(
-    str,
-    'hello &amp;amp;&amp;gt;&amp;#39;&amp;lt;&amp;amp; &amp;quot;'
-  );
+      str,
+      'hello &amp;amp;&amp;gt;&amp;#39;&amp;lt;&amp;amp; &amp;quot;');
 });
 
 QUnit.test('unescapeHTML', function(assert) {
@@ -652,15 +630,14 @@ QUnit.test('serialize tree: end-to-end, style', function(assert) {
   };
   var html = unescapeHTML(outputHTMLString([message]), 1);
   assert.equal(
-    html,
-    '<div style="border-bottom-color: rgb(0, 0, 255); border-bottom-style: ' +
-    'solid; border-bottom-width: 4px; border-left-color: rgb(0, 0, 255); ' +
-    'border-left-style: solid; border-left-width: 4px; border-right-color: ' +
-    'rgb(0, 0, 255); border-right-style: solid; border-right-width: 4px; ' +
-    'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' + 
-    'border-top-width: 4px; width: 276px; perspective-origin: 142px 24px; ' +
-    'transform-origin: 142px 24px;" id="snap-it0" >hello world</div>'
-  );
+      html,
+      '<div style="border-bottom-color: rgb(0, 0, 255); border-bottom-style: ' +
+      'solid; border-bottom-width: 4px; border-left-color: rgb(0, 0, 255); ' +
+      'border-left-style: solid; border-left-width: 4px; border-right-color: ' +
+      'rgb(0, 0, 255); border-right-style: solid; border-right-width: 4px; ' +
+      'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' + 
+      'border-top-width: 4px; width: 276px; perspective-origin: 142px 24px; ' +
+      'transform-origin: 142px 24px;" id="snap-it0" >hello world</div>');
 });
 
 QUnit.test('processTree: head tag', function(assert) {
@@ -710,13 +687,11 @@ QUnit.test('window size comment', function(assert) {
   var serializer = new HTMLSerializer();
   serializer.processDocument(document);
   assert.equal(
-    serializer.html[1],
-    `<!-- Original window height: ${window.innerHeight}. -->\n`
-  );
+      serializer.html[1],
+      `<!-- Original window height: ${window.innerHeight}. -->\n`);
   assert.equal(
-    serializer.html[2],
-    `<!-- Original window width: ${window.innerWidth}. -->\n`
-  );
+      serializer.html[2],
+      `<!-- Original window width: ${window.innerWidth}. -->\n`);
 });
 
 QUnit.test('processDocument: doctype tag', function(assert) {
