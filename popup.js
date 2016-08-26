@@ -107,6 +107,7 @@ function minimizeStyles(message) {
     `height: ${message.windowHeight}px;` + 
     `width: ${message.windowWidth}px;`
   );
+
   var html = message.html.join('');
   html = unescapeHTML(html, nestingDepth);
   iframe.contentDocument.documentElement.innerHTML = html;
@@ -137,7 +138,7 @@ function minimizeStyles(message) {
  *     element.
  *
  * @param {Object} message The message Object that contains the element whose
- *     whose style attributes should be minimized.
+ *     style attributes should be minimized.
  * @param {Document} doc The Document that contains the rendered HTML.
  * @param {Element} element The Element whose style attributes should be
  *     minimized.
@@ -157,42 +158,83 @@ function minimizeStyle(message, doc, element, id, index) {
   // change in border-width, we do this iteratively until a fixed-point is
   // reached (or |maxNumberOfIterations| is hit).
   for (var i = 0; i < maxNumberOfIterations; i++) {
-    var currentStyleAttribute = [];
-    for (var property in requiredStyleMap) {
-      currentStyleAttribute.push(
-        property + ': ' + requiredStyleMap[property] + ';'
-      );
-    }
-    element.setAttribute('style', currentStyleAttribute.join(' '));
-    var currentComputedStyle = doc.defaultView.getComputedStyle(element, null);
-    var foundNewRequiredStyle = false;
-    for (var property in originalStyleMap) {
-      var originalValue = originalStyleMap[property];
-      if (originalValue != currentComputedStyle.getPropertyValue(property)) {
-        requiredStyleMap[property] = originalValue;
-        foundNewRequiredStyle = true;
-      }
-    }
+    var foundNewRequiredStyle = updateMinimizedStyleMap(
+        doc,
+        element,
+        originalStyleMap,
+        requiredStyleMap,
+        null);
     if (!foundNewRequiredStyle) {
       break;
     }
   }
-  element.setAttribute('style', originalStyleAttribute);
 
-  var finalStyleAttribute = [];
-  for (var property in requiredStyleMap) {
-    finalStyleAttribute.push(property + ': ' + requiredStyleMap[property] + ';');
-  }
-  var style = finalStyleAttribute.join(' ');
-
-  if (style) {
+  var finalStyleAttribute = buildStyleAttribute(requiredStyleMap);
+  if (finalStyleAttribute) {
     var nestingDepth = message.frameIndex.split('.').length - 1;
-    style = style.replace(/"/g, escapedQuote(nestingDepth + 1));
+    finalStyleAttribute = finalStyleAttribute.replace(
+        /"/g,
+        escapedQuote(nestingDepth + 1));
     var quote = escapedQuote(nestingDepth);
-    message.html[index] = `style=${quote}${style}${quote} `;
+    message.html[index] = `style=${quote}${finalStyleAttribute}${quote} `;
   } else {
     message.html[index] = '';
   }
+}
+
+/**
+ * We compare the original computed style with the minimized computed style
+ * and update |minimizedStyleMap| based on any differences.
+ *
+ * @param {Document} doc The Document that contains the rendered HTML.
+ * @param {Element} element The Element whose style attributes should be
+ *     minimized.
+ * @param {Object<string, string>} originalStyleMap A map representing the
+ *     original computed style values. The keys are style attribute property
+ *     names. The values are the corresponding property values.
+ * @param {Object<string, string>} minimizedStyleMap A map representing the
+ *     minimized style values. The keys are style attribute property names. The
+ *     values are the corresponding property values.
+ * @param {string} pseudo If the style describes an ordinary
+ *     Element, then |pseudo| will be set to null.  If the style describes a
+ *     pseudo element, then |pseudo| will be the string that represents that
+ *     pseudo element.
+ * @return {boolean} Returns true if minimizedStyleMap was changed. Returns false
+ *     otherwise.
+ */
+function updateMinimizedStyleMap(
+    doc,
+    element,
+    originalStyleMap,
+    minimizedStyleMap,
+    pseudo) {
+  element.setAttribute('style', buildStyleAttribute(minimizedStyleMap));
+  var currentComputedStyle = doc.defaultView.getComputedStyle(element, pseudo);
+  var foundNewRequiredStyle = false;
+  for (var property in originalStyleMap) {
+    var originalValue = originalStyleMap[property];
+    if (originalValue != currentComputedStyle.getPropertyValue(property)) {
+      minimizedStyleMap[property] = originalValue;
+      foundNewRequiredStyle = true;
+    }
+  }
+  element.setAttribute('style', buildStyleAttribute(originalStyleMap));
+  return foundNewRequiredStyle;
+}
+
+/**
+ * Build a style attribute from a map of property names to property values.
+ *
+ * @param {Object<string, string} styleMap The keys are style attribute property
+ *     names. The values are the corresponding property values.
+ * @return {string} The correct style attribute.
+ */
+function buildStyleAttribute(styleMap) {
+  var styleAttribute = [];
+  for (var property in styleMap) {
+    styleAttribute.push(property + ': ' + styleMap[property] + ';');
+  }
+  return styleAttribute.join(' ');
 }
 
 /**
