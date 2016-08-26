@@ -295,21 +295,18 @@ var HTMLSerializer = class {
         var escapedQuote = this.escapedCharacter('"', nestingDepth);
         var styleText = style.cssText.replace(/"/g, escapedQuote);
         styleText = this.escapedUnicodeString(
-          styleText,
-          this.INPUT_TEXT_TYPE.CSS
-        );
+            styleText,
+            this.INPUT_TEXT_TYPE.CSS);
         this.pseudoElementCSS.push(
-          '#' + id + ':' + pseudo + '{' + styleText + '} '
-        );
+            '#' + id + ':' + pseudo + '{' + styleText + '} ');
 
         var styleMap = {};
         for (var i = 0; i < style.length; i++) {
           var propertyName = style.item(i);
           var propertyValue = style.getPropertyValue(propertyName);
           propertyValue = this.escapedUnicodeString(
-            propertyValue,
-            this.INPUT_TEXT_TYPE.CSS
-          );
+              propertyValue,
+              this.INPUT_TEXT_TYPE.CSS);
           styleMap[propertyName] = propertyValue;
         }
         this.pseudoElementSelectorToCSSMap['#' + id + ':' + pseudo] = styleMap;

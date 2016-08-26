@@ -14,8 +14,6 @@ function click() {
     }
   });
 
-  // TODO(sfine): figure out why not all iframes are getting content scripts
-  //              injected.
   var serializer = {file: 'HTMLSerializer.js', allFrames: true};
   chrome.tabs.executeScript(null, serializer, function() {
     var contentScript = {file: 'content_script.js', allFrames: true};
@@ -103,10 +101,9 @@ function minimizeStyles(message) {
   var iframe = document.createElement('iframe');
   document.body.appendChild(iframe);
   iframe.setAttribute(
-    'style',
-    `height: ${message.windowHeight}px;` + 
-    `width: ${message.windowWidth}px;`
-  );
+      'style',
+      `height: ${message.windowHeight}px;` + 
+      `width: ${message.windowWidth}px;`);
 
   var html = message.html.join('');
   html = unescapeHTML(html, nestingDepth);
@@ -125,12 +122,11 @@ function minimizeStyles(message) {
 
   if (message.rootStyleIndex) {
     minimizeStyle(
-      message,
-      doc,
-      doc.documentElement,
-      message.rootId,
-      message.rootStyleIndex
-    );
+        message,
+        doc,
+        doc.documentElement,
+        message.rootId,
+        message.rootStyleIndex);
   }
 
   for (var id in message.idToStyleIndex) {
