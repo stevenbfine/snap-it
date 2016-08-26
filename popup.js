@@ -168,11 +168,12 @@ function minimizePseudoElementStyle(
   if (element) {
     var originalStyleMap = message.pseudoElementSelectorToCSSMap[selector];
     var requiredStyleMap = {};
-    // We compare the computed style before and after removing the pseudo element
-    // and accumulate the differences in |requiredStyleMap|. Because some
-    // properties affect other properties, such as border-style: solid causing a
-    // change in border-width, we do this iteratively until a fixed-point is
-    // reached (or |maxNumberOfIterations| is hit).
+    // We compare the computed style before and after removing the pseudo
+    // element and accumulate the differences in |requiredStyleMap|. The pseudo
+    // element is removed by changing the element id. Because some properties
+    // affect other properties, such as border-style: solid causing a change in
+    // border-width, we do this iteratively until a fixed-point is reached (or
+    // |maxNumberOfIterations| is hit).
     // TODO(sfine): Unify this logic with minimizeStyles.
     for (var i = 0; i < maxNumberOfIterations; i++) {
       var currentPseudoElement = ['#' + message.unusedId + ':' + type + '{'];
